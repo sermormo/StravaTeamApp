@@ -1,0 +1,45 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Actividades del Equipo";
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-4">Entrenamientos del Equipo</h1>
+    <p>Registro de las últimas carreras sincronizadas desde Strava.</p>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Atleta</th>
+            <th>Nombre de la Actividad</th>
+            <th>Distancia (km)</th>
+            <th>Tiempo en Movimiento (min)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Activities.Any())
+        {
+            @foreach (var run in Model.Activities)
+            {
+                <tr>
+                    <td>@run.Athlete?.Firstname @run.Athlete?.Lastname</td>
+                    <td>@run.Name</td>
+                    <!-- Convertimos metros a kilómetros y redondeamos a 2 decimales -->
+                    <td>@(Math.Round(run.Distance / 1000, 2))</td>
+                    <!-- Convertimos segundos a minutos y redondeamos a 2 decimales -->
+                    <td>@(Math.Round(run.MovingTime / 60.0, 2))</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    No se encontraron carreras recientes o falta configurar el Access Token.
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
