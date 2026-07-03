@@ -1,0 +1,54 @@
+@page
+@model StravaTeamApp.Areas.Identity.Pages.Account.ExternalLoginModel
+@{
+    ViewData["Title"] = "Registro Oficial con Strava";
+}
+
+<div class="text-center mt-4 mb-4">
+    <h2 class="fw-bold" style="color: var(--brand-dark);">@ViewData["Title"]</h2>
+    <h5 id="external-login-title" class="text-success">
+        Has sido autenticado exitosamente con <strong>@Model.ProviderDisplayName</strong>.
+    </h5>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <p class="text-muted text-center mb-4">
+            ¡Ya casi estamos listos! Confirma tus datos para terminar de crear tu cuenta en el 3M Healthy Living Hub. Tu ID de atleta se ha asociado de forma automática y segura.
+        </p>
+        
+        <div class="card shadow-sm border-0" style="border-top: 4px solid var(--brand-red) !important;">
+            <div class="card-body p-4">
+                <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post" novalidate>
+                    
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Nombre" class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
+                            <input asp-for="Input.Nombre" class="form-control" />
+                            <span asp-validation-for="Input.Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Apellido" class="form-label fw-bold">Apellido <span class="text-danger">*</span></label>
+                            <input asp-for="Input.Apellido" class="form-control" />
+                            <span asp-validation-for="Input.Apellido" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-dark w-100 mt-3 fw-bold text-uppercase py-2" style="background-color: var(--brand-dark);">Completar Registro</button>
+                </form>
+            </div>S
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

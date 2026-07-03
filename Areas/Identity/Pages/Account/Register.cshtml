@@ -1,0 +1,30 @@
+@page
+@model StravaTeamApp.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Registro Oficial";
+}
+
+<div class="row justify-content-center mt-5 mb-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0" style="border-top: 4px solid var(--brand-red) !important;">
+            <div class="card-header bg-white text-center py-4 border-bottom-0">
+                <h2 class="fw-bold mb-0" style="color: var(--brand-dark);">Únete al Equipo</h2>
+                <p class="text-muted mb-0">3M Healthy Living Hub</p>
+            </div>
+            
+            <div class="card-body px-5 pb-5 pt-3 text-center">
+                
+                <p class="text-muted mb-4">
+                    Para garantizar la seguridad de la plataforma y sincronizar tus estadísticas de carrera automáticamente, el registro es exclusivo mediante tu cuenta oficial.
+                </p>
+
+                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold text-uppercase py-3 shadow-sm" name="provider" value="Strava" title="Autentícate de forma segura con Strava" style="background-color: #fc4c02; border-color: #fc4c02; font-size: 1.1rem;">
+                        Conectar con Strava
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
