@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient<StravaClubService>();
+builder.Services.AddHttpClient<StravaAthleteService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=StravaTeam.db"));
@@ -30,11 +30,8 @@ builder.Services.AddAuthentication()
         // Reemplaza esto con los números de tu portal de Strava
         options.ClientId = "127168"; 
         options.ClientSecret = "9b4d574479c806b5e574f55dc46caf53a9395a85"; 
-        
-        // Pedimos permiso explícito para leer el perfil del corredor
-        options.Scope.Add("profile:read_all"); 
-
         options.SaveTokens = true;
+        options.Scope.Add("activity:read_all");
     });
 
 var app = builder.Build();

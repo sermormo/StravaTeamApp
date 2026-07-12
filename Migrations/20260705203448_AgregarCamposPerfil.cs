@@ -5,18 +5,24 @@
 namespace StravaTeamApp.Migrations
 {
     /// <inheritdoc />
-    public partial class SepararNombreApellido : Migration
+    public partial class AgregarCamposPerfil : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "NombreCompleto",
-                table: "AspNetUsers",
-                newName: "Nombre");
+            migrationBuilder.DropColumn(
+                name: "StravaAthleteId",
+                table: "AspNetUsers");
 
             migrationBuilder.AddColumn<string>(
-                name: "Apellido",
+                name: "Genero",
+                table: "AspNetUsers",
+                type: "TEXT",
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "UPIN",
                 table: "AspNetUsers",
                 type: "TEXT",
                 nullable: false,
@@ -27,13 +33,18 @@ namespace StravaTeamApp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Apellido",
+                name: "Genero",
                 table: "AspNetUsers");
 
-            migrationBuilder.RenameColumn(
-                name: "Nombre",
+            migrationBuilder.DropColumn(
+                name: "UPIN",
+                table: "AspNetUsers");
+
+            migrationBuilder.AddColumn<long>(
+                name: "StravaAthleteId",
                 table: "AspNetUsers",
-                newName: "NombreCompleto");
+                type: "INTEGER",
+                nullable: true);
         }
     }
 }

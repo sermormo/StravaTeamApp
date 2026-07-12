@@ -1,0 +1,51 @@
+@page
+@{
+    ViewData["Title"] = "Instrucciones de Uso";
+}
+
+<div class="container mt-4 mb-5">
+    <h1 class="display-5 fw-bold mb-4" style="color: var(--brand-dark);">Guía del Corredor</h1>
+    <p class="lead text-muted">Sigue estos pasos para conectar tu cuenta de Strava correctamente y asegurar que tus carreras se sincronicen con el equipo.</p>
+
+    <div class="row mt-5">
+        <div class="col-md-8">
+            
+            <div class="card shadow-sm mb-4 border-0 border-start border-4 border-primary">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold">1. Conexión y Autorización</h4>
+                    <p>Para que la plataforma pueda contabilizar tus kilómetros, debes vincular tu cuenta de Strava. Al hacer clic en Iniciar Sesión, serás redirigido a la página oficial de Strava.</p>
+                    <div class="alert alert-warning">
+                        <strong>¡Paso Crítico!</strong> En la pantalla de autorización de Strava, asegúrate de marcar <strong>todas las casillas de verificación</strong>, especialmente la que dice: <br>
+                        <em>"View data about your private activities" (Ver datos sobre tus actividades privadas)</em>. <br><br>
+                        Si no marcas esta casilla, el sistema no tendrá permiso para leer tus carreras y tu distancia aparecerá en cero.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4 border-0 border-start border-4 border-success">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold">2. Privacidad de tus Carreras</h4>
+                    <p>Nuestra plataforma está diseñada para respetar tu privacidad mientras mantiene la exactitud del equipo:</p>
+                    <ul>
+                        <li>El sistema descarga tus actividades automáticamente cada vez que inicias sesión.</li>
+                        <li>Las actividades marcadas como "Solo yo" en Strava no se sumarán al acumulado público del equipo.</li>
+                        <li>Asegúrate de registrar tus entrenamientos como "Carrera" (Run) en Strava. Otros deportes como ciclismo o natación son ignorados por este tablero.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 border-start border-4 border-danger">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold">3. ¿Problemas de Sincronización?</h4>
+                    <p>Si notas que tus carreras recientes no aparecen en la pestaña de <strong>Métricas</strong>, intenta lo siguiente:</p>
+                    <ol>
+                        <li>Cierra sesión en esta plataforma usando el botón superior derecho.</li>
+                        <li>Vuelve a iniciar sesión. Esto obliga al sistema a buscar datos frescos directamente en Strava.</li>
+                        <li>Verifica en tu app de Strava que la actividad ya se haya subido y no esté pendiente de sincronización en tu teléfono.</li>
+                    </ol>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

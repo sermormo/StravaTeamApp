@@ -11,6 +11,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Club> Clubs { get; set; }
     public DbSet<Athlete> Athletes { get; set; }
     public DbSet<StravaActivity> Activities { get; set; }
+    public DbSet<SystemLog> SystemLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

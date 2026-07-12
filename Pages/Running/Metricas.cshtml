@@ -1,0 +1,215 @@
+@page
+@model StravaTeamApp.Pages.MetricasModel
+@{
+    ViewData["Title"] = "Métricas de Running";
+}
+
+<div class="text-center mt-4 mb-5">
+    <h1 class="display-4 fw-bold" style="color: var(--brand-dark);">Métricas de Running</h1>
+    <p class="lead">Plataforma oficial de seguimiento para el equipo de atletismo y preparativos de la Spirit Race.</p>
+</div>
+
+<div class="card shadow mb-5">
+    <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">Acumulado Mensual por Atleta</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Atleta / Período</th>
+                        <th>Mes</th>
+                        <th class="text-center">Total Carreras</th>
+                        <th class="text-end">Distancia Total</th>
+                        <th class="text-end">Tiempo Acumulado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.ConsolidatedData.Any())
+                    {
+                        @foreach (var athleteGroup in Model.ConsolidatedData.GroupBy(c => c.AthleteName))
+                        {
+                            <tr class="table-light" style="cursor: pointer;" onclick="toggleMonths(this, '@athleteGroup.Key')" title="Clic para expandir/contraer meses">
+                                <td colspan="5" class="fw-bold text-primary fs-5">
+                                    <span class="toggle-icon">▶</span> 🏃‍♂️ @athleteGroup.Key
+                                </td>
+                            </tr>
+                            
+                            @foreach (var summary in athleteGroup)
+                            {
+                                <tr class="month-row" data-owner="@athleteGroup.Key" style="display: none; cursor: pointer;" onclick="filterActivitiesByMonth('@summary.AthleteName', '@summary.MonthYear')" title="Ver detalles de @summary.MonthYear">
+                                    <td></td>
+                                    <td><span class="badge bg-secondary fs-6">@summary.MonthYear</span></td>
+                                    <td class="text-center">@summary.TotalActivities</td>
+                                    <td class="text-end fw-bold text-success">@summary.TotalDistanceKm km</td>
+                                    <td class="text-end text-muted">@summary.TotalTimeMin min</td>
+                                </tr>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                Aún no hay datos. Tus carreras se sincronizarán con exactitud automática cada vez que ingreses a la plataforma.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0 font-weight-normal text-white-50" id="historialTitle">Detalle de Carreras</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Atleta</th>
+                        <th>Nombre de la Actividad</th>
+                        <th class="text-end">Distancia</th>
+                        <th class="text-end">Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody id="detailedTableBody">
+                    <tr id="placeholderRow">
+                        <td colspan="5" class="text-center text-muted py-4">
+                            Selecciona un mes específico en la tabla superior para ver los detalles aquí.
+                        </td>
+                    </tr>
+
+                    @if (Model.DetailedActivities.Any())
+                    {
+                        @foreach (var monthGroup in Model.DetailedActivities.GroupBy(a => a.StartDate.ToString("yyyy-MM")))
+                        {
+                            <tr class="bg-light month-header" data-month="@monthGroup.Key" style="display: none;">
+                                <td colspan="5" class="fw-bold text-dark border-bottom border-dark">
+                                    📅 Mes: @monthGroup.Key
+                                </td>
+                            </tr>
+                            
+                            @foreach (var run in monthGroup)
+                            {
+                                <tr class="data-row" data-athlete="@run.AthleteName" data-month="@monthGroup.Key" style="display: none;">
+                                    <td class="ps-4">@run.StartDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@run.AthleteName</td>
+                                    <td class="text-muted">@run.Name</td>
+                                    <td class="text-end">@(Math.Round(run.Distance / 1000, 2)) km</td>
+                                    <td class="text-end">@(Math.Round(run.MovingTime / 60.0, 2)) min</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Función 1: Abre y cierra los meses debajo del nombre del atleta
+        function toggleMonths(rowElement, athleteName) {
+            // Buscamos todas las filas de mes que pertenecen a este atleta
+            var rows = document.querySelectorAll('.month-row[data-owner="' + athleteName + '"]');
+            var icon = rowElement.querySelector('.toggle-icon');
+            
+            if (rows.length === 0) return;
+
+            // Revisamos si la primera fila está oculta para determinar si abrimos o cerramos
+            var isHidden = rows[0].style.display === 'none';
+
+            rows.forEach(function(row) {
+                row.style.display = isHidden ? 'table-row' : 'none';
+                
+                // Efecto visual sutil al abrir
+                if (isHidden) {
+                    row.style.backgroundColor = '#f8f9fa';
+                    setTimeout(() => row.style.backgroundColor = '', 300);
+                }
+            });
+
+            // Cambiamos el icono de la flecha
+            icon.innerText = isHidden ? '▼' : '▶';
+
+            // --- NUEVA LÓGICA: Si estamos cerrando el menú, limpiamos la tabla inferior ---
+            if (!isHidden) {
+                limpiarDetalles();
+            }
+        }
+
+        // Función 2: Filtra la tabla inferior por Atleta Y por Mes
+        function filterActivitiesByMonth(athleteName, monthYear) {
+            var tableBody = document.getElementById("detailedTableBody");
+            var rows = tableBody.getElementsByTagName("tr");
+            var title = document.getElementById("historialTitle");
+            var placeholder = document.getElementById("placeholderRow");
+
+            // Ocultamos el mensaje de "Selecciona un mes..."
+            if (placeholder) {
+                placeholder.style.display = "none";
+            }
+
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].id === "placeholderRow") continue;
+
+                // Controlamos las cabeceras de mes
+                if (rows[i].classList.contains('month-header')) {
+                    if (rows[i].getAttribute('data-month') === monthYear) {
+                        rows[i].style.display = 'table-row';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                    continue;
+                }
+
+                // Controlamos las filas de datos
+                if (rows[i].classList.contains('data-row')) {
+                    var runAthlete = rows[i].getAttribute('data-athlete');
+                    var runMonth = rows[i].getAttribute('data-month');
+                    
+                    // Solo mostramos si el nombre Y el mes coinciden exactamente
+                    if (runAthlete === athleteName && runMonth === monthYear) {
+                        rows[i].style.display = 'table-row';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+
+            // Actualizamos el título de la tabla inferior y hacemos scroll
+            title.innerText = "Actividades de " + athleteName + " (" + monthYear + ")";
+            title.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Función 3 (Nueva): Restablece la tabla inferior a su estado inicial vacío
+        function limpiarDetalles() {
+            var tableBody = document.getElementById("detailedTableBody");
+            var rows = tableBody.getElementsByTagName("tr");
+            var title = document.getElementById("historialTitle");
+            var placeholder = document.getElementById("placeholderRow");
+
+            // Mostramos el mensaje por defecto
+            if (placeholder) {
+                placeholder.style.display = "table-row";
+            }
+
+            // Ocultamos absolutamente todo lo demás
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].id !== "placeholderRow") {
+                    rows[i].style.display = 'none';
+                }
+            }
+
+            // Reiniciamos el título
+            title.innerText = "Detalle de Carreras";
+        }
+    </script>
+}

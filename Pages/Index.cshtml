@@ -1,176 +1,65 @@
 ﻿@page
-@model IndexModel
 @{
-    ViewData["Title"] = "Consolidado del Equipo";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center mt-4 mb-5">
-    <h1 class="display-4 fw-bold" style="color: var(--brand-dark);">Bienvenido a 3M Healthy Living Hub</h1>
-    <p class="lead">Plataforma oficial de seguimiento para el equipo de atletismo y preparativos de la Spirit Race.</p>
-</div>
+<div class="container mt-5">
+    <div class="row align-items-center mb-5">
 
-<div class="card shadow mb-5">
-    <div class="card-header bg-primary text-white">
-        <h3 class="card-title mb-0">Acumulado Mensual por Atleta</h3>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="consolidatedTable" class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                    <tr style="cursor: pointer;" title="Clic para ordenar">
-                        <th onclick="sortTable(0)">Atleta ↕</th>
-                        <th onclick="sortTable(1)">Período (Año-Mes) ↕</th>
-                        <th class="text-center" onclick="sortTable(2)">Total Carreras ↕</th>
-                        <th class="text-end" onclick="sortTable(3)">Distancia Total ↕</th>
-                        <th class="text-end" onclick="sortTable(4)">Tiempo Acumulado ↕</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.ConsolidatedData.Any())
-                    {
-                        @foreach (var summary in Model.ConsolidatedData)
-                        {
-                            <tr>
-                                <td class="fw-bold text-primary text-decoration-underline" style="cursor: pointer;" onclick="filterActivities('@summary.AthleteName')" title="Ver actividades de @summary.AthleteName">@summary.AthleteName</td>
-                                <td><span class="badge bg-light text-dark">@summary.MonthYear</span></td>
-                                <td class="text-center">@summary.TotalActivities</td>
-                                <td class="text-end fw-bold text-success">@summary.TotalDistanceKm km</td>
-                                <td class="text-end text-muted">@summary.TotalTimeMin min</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No hay datos consolidados. Sincroniza con el Access Token.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0 pe-lg-5">
+            <h1 class="display-4 fw-bold" style="color: var(--brand-dark);">Bienvenido al 3M Healthy Living Hub</h1>
+            <p class="lead text-muted mt-3">
+                Tu centro de mando para el bienestar físico y el análisis de rendimiento deportivo.
+            </p>
+
+            <hr class="w-25 mx-auto mx-lg-0 my-4 border-primary border-3 opacity-100">
+
+            <h4 class="fw-bold mb-3">Nuestro Propósito</h4>
+            <p class="fs-5">
+                Esta plataforma está diseñada para centralizar y dar un seguimiento preciso a las actividades que
+                realizan los atletas a través de los diferentes clubes de Strava de 3M.
+            </p>
+            <p>
+                Más allá de simplemente registrar kilómetros, el sistema recopila y procesa esta información para
+                brindarte <strong>análisis de datos detallados</strong>. Nuestro objetivo es darte la visibilidad
+                necesaria para entender el esfuerzo colectivo, identificar tendencias de rendimiento y mantener la
+                motivación de todos los participantes al máximo nivel.
+            </p>
+
+            <div class="mt-5 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                <a asp-page="/Running/Metricas"
+                   class="btn btn-danger btn-lg fw-bold px-4 text-white text-uppercase shadow-sm border-0"
+                   style="background-color: red;">
+                    VER MÉTRICAS
+                </a>
+                <a asp-page="/Instrucciones"
+                   class="btn btn-danger btn-lg fw-bold px-4 text-white text-uppercase shadow-sm border-0"
+                   style="background-color: red;">
+                    CÓMO EMPEZAR
+                </a>
+            </div>
         </div>
-    </div>
-</div>
 
-<div class="card shadow">
-    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0 font-weight-normal text-white-50" id="historialTitle">Historial de Carreras Recientes</h4>
-        <button class="btn btn-sm btn-outline-light" id="btnResetFilter" style="display: none;" onclick="filterActivities('all')">Mostrar a todos</button>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Atleta</th>
-                        <th>Nombre de la Actividad</th>
-                        <th class="text-end">Distancia</th>
-                        <th class="text-end">Tiempo</th>
-                    </tr>
-                </thead>
-                <tbody id="detailedTableBody">
-                    @foreach (var run in Model.DetailedActivities)
-                    {
-                        <tr>
-                            <td>@run.StartDate.ToString("yyyy-MM-dd")</td>
-                            <td>@run.Athlete?.Firstname @run.Athlete?.Lastname</td>
-                            <td class="text-muted">@run.Name</td>
-                            <td class="text-end">@(Math.Round(run.Distance / 1000, 2)) km</td>
-                            <td class="text-end">@(Math.Round(run.MovingTime / 60.0, 2)) min</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow bg-light p-3">
+                <h5 class="text-center text-muted fw-bold mb-3">Actividad Reciente del Club</h5>
+                <div class="d-flex flex-column align-items-center gap-3">
+
+                    <div class="rounded overflow-hidden bg-white shadow-sm" style="width: 300px;">
+                        <iframe allowtransparency='true' frameborder='0' height='454' scrolling='no'
+                                src='https://www.strava.com/clubs/1252154/latest-rides/abea5190e75d08c3405b9d9090c08b93f5cf0af3?show_rides=true'
+                                width='300'></iframe>
+                    </div>
+
+                    <div class="rounded overflow-hidden bg-white shadow-sm" style="width: 300px;">
+                        <iframe allowtransparency='true' frameborder='0' height='160' scrolling='no'
+                                src='https://www.strava.com/clubs/1252154/latest-rides/abea5190e75d08c3405b9d9090c08b93f5cf0af3?show_rides=false'
+                                width='300'></iframe>
+                    </div>
+
+                </div>
+            </div>
         </div>
+
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // Función original para ordenar la tabla superior
-        function sortTable(n) {
-            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-            table = document.getElementById("consolidatedTable");
-            switching = true;
-            dir = "desc"; 
-            
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-                
-                for (i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
-                    
-                    let valX = x.innerText.toLowerCase().replace(' km', '').replace(' min', '').trim();
-                    let valY = y.innerText.toLowerCase().replace(' km', '').replace(' min', '').trim();
-                    
-                    let numX = parseFloat(valX);
-                    let numY = parseFloat(valY);
-                    
-                    let isNumeric = !isNaN(numX) && !isNaN(numY);
-
-                    if (dir == "asc") {
-                        if (isNumeric ? (numX > numY) : (valX > valY)) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir == "desc") {
-                        if (isNumeric ? (numX < numY) : (valX < valY)) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else {
-                    if (switchcount == 0 && dir == "desc") {
-                        dir = "asc";
-                        switching = true;
-                    }
-                }
-            }
-        }
-
-        // NUEVA FUNCIÓN: Filtrar las actividades por atleta
-        function filterActivities(athleteName) {
-            var tableBody = document.getElementById("detailedTableBody");
-            var rows = tableBody.getElementsByTagName("tr");
-            var title = document.getElementById("historialTitle");
-            var btnReset = document.getElementById("btnResetFilter");
-
-            // Recorremos todas las filas de la tabla inferior
-            for (var i = 0; i < rows.length; i++) {
-                var tdAthlete = rows[i].getElementsByTagName("td")[1]; // Columna 1 es el Atleta
-                if (tdAthlete) {
-                    var txtValue = tdAthlete.textContent || tdAthlete.innerText;
-                    
-                    // Si elegimos "all" o si el texto coincide con el atleta, mostramos la fila
-                    if (athleteName === 'all' || txtValue.trim() === athleteName.trim()) {
-                        rows[i].style.display = "";
-                    } else {
-                        // De lo contrario, la ocultamos
-                        rows[i].style.display = "none";
-                    }
-                }
-            }
-
-            // Cambiamos los títulos y mostramos/ocultamos el botón de reinicio
-            if (athleteName === 'all') {
-                title.innerText = "Historial de Carreras Recientes";
-                btnReset.style.display = "none";
-            } else {
-                title.innerText = "Historial de Carreras de " + athleteName;
-                btnReset.style.display = "inline-block";
-                
-                // Hacemos un scroll suave hacia abajo para que el usuario vea la tabla filtrada
-                title.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-    </script>
-}

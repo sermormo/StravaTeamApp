@@ -4,6 +4,12 @@
     ViewData["Title"] = "Registro Oficial con Strava";
 }
 
+<style>
+    .validation-summary-valid {
+        display: none !important;
+    }
+</style>
+
 <div class="text-center mt-4 mb-4">
     <h2 class="fw-bold" style="color: var(--brand-dark);">@ViewData["Title"]</h2>
     <h5 id="external-login-title" class="text-success">
@@ -21,30 +27,49 @@
             <div class="card-body p-4">
                 <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post" novalidate>
                     
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    <div asp-validation-summary="All" class="alert alert-danger fw-bold small" role="alert">
+                        <strong>Por favor, revisa los siguientes errores:</strong>
+                    </div>
                     
                     <div class="mb-3">
                         <label asp-for="Input.Email" class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
                         <input asp-for="Input.Email" class="form-control" autocomplete="email" />
-                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        <span asp-validation-for="Input.Email" class="text-danger small fw-bold"></span>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Input.Nombre" class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
                             <input asp-for="Input.Nombre" class="form-control" />
-                            <span asp-validation-for="Input.Nombre" class="text-danger"></span>
+                            <span asp-validation-for="Input.Nombre" class="text-danger small fw-bold"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="Input.Apellido" class="form-label fw-bold">Apellido <span class="text-danger">*</span></label>
                             <input asp-for="Input.Apellido" class="form-control" />
-                            <span asp-validation-for="Input.Apellido" class="text-danger"></span>
+                            <span asp-validation-for="Input.Apellido" class="text-danger small fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Genero" class="form-label fw-bold">Género <span class="text-danger">*</span></label>
+                            <select asp-for="Input.Genero" class="form-select">
+                                <option value="">Selecciona...</option>
+                                <option value="Hombre">Hombre</option>
+                                <option value="Mujer">Mujer</option>
+                            </select>
+                            <span asp-validation-for="Input.Genero" class="text-danger small fw-bold"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.UPIN" class="form-label fw-bold">UPIN <span class="text-danger">*</span></label>
+                            <input asp-for="Input.UPIN" class="form-control" />
+                            <span asp-validation-for="Input.UPIN" class="text-danger small fw-bold"></span>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-dark w-100 mt-3 fw-bold text-uppercase py-2" style="background-color: var(--brand-dark);">Completar Registro</button>
+                    <button type="submit" formnovalidate class="btn btn-dark w-100 mt-3 fw-bold text-uppercase py-2" style="background-color: var(--brand-dark);">Completar Registro</button>
                 </form>
-            </div>S
+            </div>
         </div>
     </div>
 </div>

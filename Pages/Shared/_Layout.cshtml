@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - 3M Healthy Living Hub</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -23,12 +24,36 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Inicio</a>
                         </li>
 
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="runningDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Running
+                            </a>
+                            <ul class="dropdown-menu shadow" aria-labelledby="runningDropdown">
+                                <li><a class="dropdown-item" asp-area="" asp-page="/Running/Metricas">Métricas</a></li>
+                                <li><a class="dropdown-item" asp-area="" asp-page="/Running/Dashboard">Dashboard</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-bold text-primary" asp-area=""
+                               asp-page="/Instrucciones">Instrucciones</a>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="sistemaDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Sistema
+                            </a>
+                            <ul class="dropdown-menu shadow" aria-labelledby="sistemaDropdown">
+                                <li><a class="dropdown-item" asp-area="" asp-page="/Sistema/Logs">Logs de Sistema</a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

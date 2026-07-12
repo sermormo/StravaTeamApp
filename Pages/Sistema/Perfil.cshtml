@@ -1,0 +1,95 @@
+@page
+@model StravaTeamApp.Pages.Sistema.PerfilModel
+@{
+    ViewData["Title"] = "Mi Perfil";
+    
+    var colorLed = Model.EstaConectadoAStrava ? "bg-success" : "bg-danger";
+    var textoStrava = Model.EstaConectadoAStrava ? "Conectado" : "Desconectado";
+}
+
+<style>
+    .validation-summary-valid {
+        display: none !important;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Configuración de Perfil</h2>
+                    <p class="text-muted mb-0">Gestiona tus datos personales y conexiones.</p>
+                </div>
+                
+                <div class="d-flex align-items-center border rounded px-3 py-2 bg-light">
+                    <span class="badge rounded-pill @colorLed me-2 shadow-sm" style="width: 12px; height: 12px; padding: 0;">&nbsp;</span>
+                    <span class="fw-bold text-dark small">Strava: @textoStrava</span>
+                </div>
+            </div>
+
+            <form method="post" asp-page-handler="GuardarPerfil" novalidate>
+                
+                <div asp-validation-summary="All" class="alert alert-danger fw-bold small" role="alert">
+                    <strong>Por favor, revisa los siguientes errores:</strong>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
+                        <input type="text" class="form-control bg-light text-muted" value="@Model.EmailUsuario" disabled />
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Input.Nombre" />
+                        <span asp-validation-for="Input.Nombre" class="text-danger small fw-bold"></span>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Apellido <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Input.Apellido" />
+                        <span asp-validation-for="Input.Apellido" class="text-danger small fw-bold"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Género <span class="text-danger">*</span></label>
+                        <select class="form-select" asp-for="Input.Genero">
+                            <option value="">Selecciona...</option>
+                            <option value="Hombre">Hombre</option>
+                            <option value="Mujer">Mujer</option>
+                        </select>
+                        <span asp-validation-for="Input.Genero" class="text-danger small fw-bold"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">UPIN <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Input.UPIN" />
+                        <span asp-validation-for="Input.UPIN" class="text-danger small fw-bold"></span>
+                    </div>
+                </div>
+
+                <button type="submit" formnovalidate class="btn btn-dark fw-bold px-4">💾 Actualizar Perfil</button>
+            </form>
+
+            <hr class="my-5">
+
+            <h5 class="fw-bold text-danger">Zona de Peligro</h5>
+            <p class="text-muted small">
+                Si desconectas tu cuenta de Strava, <strong>tu perfil será eliminado por completo</strong> de la plataforma. Tendrás que volver a registrarte si deseas ingresar en el futuro.
+            </p>
+            
+            <form method="post" asp-page-handler="RevocarStrava" onsubmit="return confirm('ATENCIÓN: ¿Estás completamente seguro de que deseas eliminar tu cuenta de la plataforma y desconectar Strava? Esta acción no se puede deshacer.');">
+                <button type="submit" class="btn btn-outline-danger fw-bold shadow-sm" @(!Model.EstaConectadoAStrava ? "disabled" : "")>
+                    🗑️ Eliminar Cuenta y Desconectar
+                </button>
+            </form>
+            
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -11,8 +11,8 @@ using StravaTeamApp.Data;
 namespace StravaTeamApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260702190339_AgregarIdentity")]
-    partial class AgregarIdentity
+    [Migration("20260705203448_AgregarCamposPerfil")]
+    partial class AgregarCamposPerfil
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -160,6 +160,10 @@ namespace StravaTeamApp.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
@@ -171,13 +175,17 @@ namespace StravaTeamApp.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Genero")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NombreCompleto")
+                    b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -201,11 +209,12 @@ namespace StravaTeamApp.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("StravaAthleteId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("UPIN")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
@@ -265,8 +274,12 @@ namespace StravaTeamApp.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("AthleteId")
+                    b.Property<long?>("AthleteId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("AthleteName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("Distance")
                         .HasColumnType("REAL");
@@ -285,11 +298,42 @@ namespace StravaTeamApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AthleteId");
 
                     b.ToTable("Activities");
+                });
+
+            modelBuilder.Entity("StravaTeamApp.Models.SystemLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Detalles")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nivel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemLogs");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -356,13 +400,9 @@ namespace StravaTeamApp.Migrations
 
             modelBuilder.Entity("StravaTeamApp.Models.StravaActivity", b =>
                 {
-                    b.HasOne("StravaTeamApp.Models.Athlete", "Athlete")
+                    b.HasOne("StravaTeamApp.Models.Athlete", null)
                         .WithMany("Activities")
-                        .HasForeignKey("AthleteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Athlete");
+                        .HasForeignKey("AthleteId");
                 });
 
             modelBuilder.Entity("StravaTeamApp.Models.Athlete", b =>
