@@ -5,6 +5,20 @@
     ViewData["Title"] = "Administración";
 }
 
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">
+        @successMessage
+    </div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
 <div class="container py-4">
     <div class="mb-4">
         <h1>Panel de administración</h1>
@@ -36,6 +50,7 @@
                                 <th>UPIN</th>
                                 <th>Correo</th>
                                 <th>Rol</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
 
@@ -64,6 +79,41 @@
                                             <span class="badge bg-secondary">
                                                 @usuario.Roles
                                             </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (usuario.EsAdministrador)
+                                        {
+                                            if (usuario.Id == Model.UsuarioActualId)
+                                            {
+                                                <span class="text-muted">
+                                                    Usuario actual
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <form method="post" asp-page-handler="QuitarAdministrador" class="d-inline">
+
+                                                    <input type="hidden" name="usuarioId" value="@usuario.Id" />
+
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            onclick="return confirm('¿Deseas quitar el permiso de administrador?');">
+                                                        Quitar administrador
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <form method="post" asp-page-handler="Promover" class="d-inline">
+
+                                                <input type="hidden" name="usuarioId" value="@usuario.Id" />
+
+                                                <button type="submit" class="btn btn-sm btn-outline-primary"
+                                                        onclick="return confirm('¿Deseas promover este usuario a administrador?');">
+                                                    Promover a administrador
+                                                </button>
+                                            </form>
                                         }
                                     </td>
                                 </tr>
