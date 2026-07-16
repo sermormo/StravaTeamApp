@@ -1,40 +1,65 @@
 using StravaTeamApp.Services;
 using StravaTeamApp.Data;
 using StravaTeamApp.Models;
+using StravaTeamApp.Data.Seed;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Missing configuration: ConnectionStrings:DefaultConnection");
+
+var stravaClientId =
+    builder.Configuration["Strava:ClientId"]
+    ?? throw new InvalidOperationException(
+        "Missing configuration: Strava:ClientId");
+
+var stravaClientSecret =
+    builder.Configuration["Strava:ClientSecret"]
+    ?? throw new InvalidOperationException(
+        "Missing configuration: Strava:ClientSecret");
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<StravaAthleteService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=StravaTeam.db"));
+    options.UseSqlite(connectionString));
 
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => 
 {
-    // Opciones relajadas para facilitar las pruebas del equipo
     options.SignIn.RequireConfirmedAccount = false; 
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
 })
+.AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<AppDbContext>();
 
 // Configuración de inicio de sesión externo con Strava
 builder.Services.AddAuthentication()
     .AddStrava(options =>
     {
-        // Reemplaza esto con los números de tu portal de Strava
-        options.ClientId = "127168"; 
-        options.ClientSecret = "9b4d574479c806b5e574f55dc46caf53a9395a85"; 
+        options.ClientId = stravaClientId; 
+        options.ClientSecret = stravaClientSecret; 
         options.SaveTokens = true;
         options.Scope.Add("activity:read_all");
     });
 
 var app = builder.Build();
+
+//Seed database
+using (var scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedRolesAsync(
+        scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

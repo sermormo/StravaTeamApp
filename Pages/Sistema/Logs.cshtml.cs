@@ -7,9 +7,8 @@ using StravaTeamApp.Models;
 
 namespace StravaTeamApp.Pages.Sistema;
 
-// Protegemos la página para que solo usuarios autenticados puedan verla. 
-// A futuro, aquí podrías aplicar [Authorize(Roles = "Admin")]
-[Authorize]
+
+[Authorize(Roles = "Administrator")]
 public class LogsModel : PageModel
 {
     private readonly AppDbContext _context;

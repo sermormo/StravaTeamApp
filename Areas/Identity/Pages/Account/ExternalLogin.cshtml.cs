@@ -17,19 +17,22 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly ILogger<ExternalLoginModel> _logger;
         private readonly StravaAthleteService _athleteService;
+        private readonly IConfiguration _configuration;
 
         public ExternalLoginModel(
           SignInManager<ApplicationUser> signInManager,
           UserManager<ApplicationUser> userManager,
           IUserStore<ApplicationUser> userStore,
           ILogger<ExternalLoginModel> logger,
-          StravaAthleteService athleteService)
+          StravaAthleteService athleteService,
+          IConfiguration configuration)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _userStore = userStore;
             _logger = logger;
             _athleteService = athleteService;
+            _configuration = configuration;
         }
 
         [BindProperty]
@@ -37,28 +40,28 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
 
         public string ProviderDisplayName { get; set; } = string.Empty;
         public string ReturnUrl { get; set; } = string.Empty;
-        
+
         [TempData]
         public string ErrorMessage { get; set; } = string.Empty;
 
         public class InputModel
-    {
-        [Required(ErrorMessage = "El Correo Electrónico es obligatorio.")]
-        [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
-        public string Email { get; set; } = string.Empty;
+        {
+            [Required(ErrorMessage = "El Correo Electrónico es obligatorio.")]
+            [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
+            public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El Nombre es obligatorio.")]
-        public string Nombre { get; set; } = string.Empty;
+            [Required(ErrorMessage = "El Nombre es obligatorio.")]
+            public string Nombre { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El Apellido es obligatorio.")]
-        public string Apellido { get; set; } = string.Empty;
+            [Required(ErrorMessage = "El Apellido es obligatorio.")]
+            public string Apellido { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El Género es obligatorio.")]
-        public string Genero { get; set; } = string.Empty;
+            [Required(ErrorMessage = "El Género es obligatorio.")]
+            public string Genero { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El UPIN es obligatorio.")]
-        public string UPIN { get; set; } = string.Empty;
-    }
+            [Required(ErrorMessage = "El UPIN es obligatorio.")]
+            public string UPIN { get; set; } = string.Empty;
+        }
 
         public IActionResult OnGet() => RedirectToPage("./Login");
 
@@ -107,6 +110,7 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
                 var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 if (user != null && info.AuthenticationTokens != null)
                 {
+                    await EnsureUserRolesAsync(user);
                     foreach (var prop in info.AuthenticationTokens)
                     {
                         await _userManager.SetAuthenticationTokenAsync(user, info.LoginProvider, prop.Name, prop.Value);
@@ -143,17 +147,23 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
                 
-                // --- ASIGNACIÓN DE LOS DATOS AL USUARIO ---
                 user.Nombre = Input.Nombre;
                 user.Apellido = Input.Apellido;
-                user.Genero = Input.Genero; // Nuevo
-                user.UPIN = Input.UPIN;     // Nuevo
+                user.Genero = Input.Genero; 
+                user.UPIN = Input.UPIN;
+                user.Email = Input.Email;     
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                await _userStore.SetUserNameAsync(
+                    user, 
+                    Input.Email, 
+                    CancellationToken.None
+                );
 
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
+                   await EnsureUserRolesAsync(user);
+
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
@@ -191,6 +201,55 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
             catch
             {
                 throw new InvalidOperationException($"No se puede crear una instancia de '{nameof(ApplicationUser)}'.");
+            }
+        }
+
+        private async Task EnsureUserRolesAsync(ApplicationUser user)
+        {
+            if (!await _userManager.IsInRoleAsync(user, "Member"))
+            {
+                var memberResult =
+                    await _userManager.AddToRoleAsync(user, "Member");
+
+                if (!memberResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        memberResult.Errors.Select(error => error.Description));
+
+                    throw new InvalidOperationException(
+                        $"No se pudo asignar el rol Member: {errors}");
+                }
+            }
+
+            var adminEmail =
+                _configuration["InitialAdmin:Email"];
+
+            var isConfiguredAdministrator =
+                !string.IsNullOrWhiteSpace(adminEmail) &&
+                string.Equals(
+                    user.Email,
+                    adminEmail,
+                    StringComparison.OrdinalIgnoreCase);
+
+            if (isConfiguredAdministrator &&
+                !await _userManager.IsInRoleAsync(user, "Administrator"))
+            {
+                var administratorResult =
+                    await _userManager.AddToRoleAsync(
+                        user,
+                        "Administrator");
+
+                if (!administratorResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        administratorResult.Errors.Select(
+                            error => error.Description));
+
+                    throw new InvalidOperationException(
+                        $"No se pudo asignar Administrator: {errors}");
+                }
             }
         }
     }
