@@ -72,64 +72,190 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> OnGetCallbackAsync(
+           string? returnUrl = null,
+           string? remoteError = null)
         {
-            returnUrl = returnUrl ?? Url.Content("~/");
-            if (remoteError != null)
+            returnUrl ??= Url.Content("~/");
+
+            if (remoteError is not null)
             {
-                ErrorMessage = $"Error del proveedor externo: {remoteError}";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                ErrorMessage =
+                    $"Error del proveedor externo: {remoteError}";
+
+                return RedirectToPage(
+                    "./Login",
+                    new { ReturnUrl = returnUrl });
             }
 
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            var info =
+                await _signInManager.GetExternalLoginInfoAsync();
+
+            if (info is null)
             {
-                ErrorMessage = "Error al cargar la información externa.";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                ErrorMessage =
+                    "Error al cargar la información externa.";
+
+                return RedirectToPage(
+                    "./Login",
+                    new { ReturnUrl = returnUrl });
             }
 
-            // --- INICIO DE LA BARRERA DE SEGURIDAD DEL EQUIPO ---
-            var accessToken = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
+            var accessToken = info.AuthenticationTokens?
+                .FirstOrDefault(token => token.Name == "access_token")?
+                .Value;
 
             if (!string.IsNullOrEmpty(accessToken))
             {
-                long equipoClubId = 1252154; // ID oficial del equipo
-                bool esMiembro = await _athleteService.EsMiembroDelClubAsync(accessToken, equipoClubId);
+                const long teamClubId = 1252154;
 
-                if (!esMiembro)
+                var isMember =
+                    await _athleteService.EsMiembroDelClubAsync(
+                        accessToken,
+                        teamClubId);
+
+                if (!isMember)
                 {
-                    ErrorMessage = "Acceso denegado: Solo miembros del equipo oficial pueden ingresar a la plataforma.";
-                    return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                    ErrorMessage =
+                        "Acceso denegado: solo los miembros del equipo oficial pueden ingresar a la plataforma.";
+
+                    return RedirectToPage(
+                        "./Login",
+                        new { ReturnUrl = returnUrl });
                 }
             }
-            // --- FIN DE LA BARRERA DE SEGURIDAD ---
 
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
-            if (result.Succeeded)
+            // Link Strava to the currently authenticated account.
+            if (_signInManager.IsSignedIn(User))
             {
-                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                if (user != null && info.AuthenticationTokens != null)
+                var currentUser =
+                    await _userManager.GetUserAsync(User);
+
+                if (currentUser is null)
                 {
-                    await EnsureUserRolesAsync(user);
-                    foreach (var prop in info.AuthenticationTokens)
+                    ErrorMessage =
+                        "No fue posible identificar la cuenta actual.";
+
+                    return RedirectToPage(
+                        "./Login",
+                        new { ReturnUrl = returnUrl });
+                }
+
+                var linkedUser =
+                    await _userManager.FindByLoginAsync(
+                        info.LoginProvider,
+                        info.ProviderKey);
+
+                if (linkedUser is not null &&
+                    linkedUser.Id != currentUser.Id)
+                {
+                    ErrorMessage =
+                        "Esta cuenta de Strava ya está vinculada a otro usuario.";
+
+                    return RedirectToPage(
+                        "./Login",
+                        new { ReturnUrl = returnUrl });
+                }
+
+                if (linkedUser is null)
+                {
+                    var addLoginResult =
+                        await _userManager.AddLoginAsync(
+                            currentUser,
+                            info);
+
+                    if (!addLoginResult.Succeeded)
                     {
-                        await _userManager.SetAuthenticationTokenAsync(user, info.LoginProvider, prop.Name, prop.Value);
+                        ErrorMessage =
+                            "No fue posible vincular la cuenta de Strava.";
+
+                        return RedirectToPage(
+                            "./Login",
+                            new { ReturnUrl = returnUrl });
                     }
                 }
 
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity?.Name, info.LoginProvider);
+                await EnsureUserRolesAsync(currentUser);
+
+                if (info.AuthenticationTokens is not null)
+                {
+                    foreach (var token in info.AuthenticationTokens)
+                    {
+                        await _userManager.SetAuthenticationTokenAsync(
+                            currentUser,
+                            info.LoginProvider,
+                            token.Name,
+                            token.Value);
+                    }
+                }
+
+                await _signInManager.RefreshSignInAsync(
+                    currentUser);
+
+                _logger.LogInformation(
+                    "Strava was linked to user {UserId}.",
+                    currentUser.Id);
+
+                return LocalRedirect(returnUrl);
+            }
+
+            var signInResult =
+                await _signInManager.ExternalLoginSignInAsync(
+                    info.LoginProvider,
+                    info.ProviderKey,
+                    isPersistent: false,
+                    bypassTwoFactor: true);
+
+            if (signInResult.Succeeded)
+            {
+                var user =
+                    await _userManager.FindByLoginAsync(
+                        info.LoginProvider,
+                        info.ProviderKey);
+
+                if (user is not null)
+                {
+                    await EnsureUserRolesAsync(user);
+
+                    if (info.AuthenticationTokens is not null)
+                    {
+                        foreach (var token in info.AuthenticationTokens)
+                        {
+                            await _userManager.SetAuthenticationTokenAsync(
+                                user,
+                                info.LoginProvider,
+                                token.Name,
+                                token.Value);
+                        }
+                    }
+                }
+
+                _logger.LogInformation(
+                    "{Name} logged in with {LoginProvider}.",
+                    info.Principal.Identity?.Name,
+                    info.LoginProvider);
+
                 return LocalRedirect(returnUrl);
             }
 
             ReturnUrl = returnUrl;
-            ProviderDisplayName = info.ProviderDisplayName;
-            if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+
+            ProviderDisplayName =
+                info.ProviderDisplayName ??
+                info.LoginProvider;
+
+            if (info.Principal.HasClaim(
+                claim => claim.Type == ClaimTypes.Email))
             {
                 Input = new InputModel
                 {
-                    Email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty
+                    Email =
+                        info.Principal.FindFirstValue(
+                            ClaimTypes.Email) ??
+                        string.Empty
                 };
             }
+
             return Page();
         }
 
@@ -145,24 +271,42 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                var existingUser =
+                    await _userManager.FindByEmailAsync(Input.Email);
+
+                if (existingUser is not null)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Este correo ya está registrado. Inicia sesión y vincula Strava desde tu perfil.");
+
+                    ProviderDisplayName =
+                        info.ProviderDisplayName ??
+                        info.LoginProvider;
+
+                    ReturnUrl = returnUrl;
+
+                    return Page();
+                }
+
                 var user = CreateUser();
-                
+
                 user.Nombre = Input.Nombre;
                 user.Apellido = Input.Apellido;
-                user.Genero = Input.Genero; 
+                user.Genero = Input.Genero;
                 user.UPIN = Input.UPIN;
-                user.Email = Input.Email;     
+                user.Email = Input.Email;
 
                 await _userStore.SetUserNameAsync(
-                    user, 
-                    Input.Email, 
+                    user,
+                    Input.Email,
                     CancellationToken.None
                 );
 
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
-                   await EnsureUserRolesAsync(user);
+                    await EnsureUserRolesAsync(user);
 
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)

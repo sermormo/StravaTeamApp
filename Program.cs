@@ -31,9 +31,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString));
 
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => 
+builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; 
+    options.SignIn.RequireConfirmedAccount = false;
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
@@ -46,8 +46,8 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 builder.Services.AddAuthentication()
     .AddStrava(options =>
     {
-        options.ClientId = stravaClientId; 
-        options.ClientSecret = stravaClientSecret; 
+        options.ClientId = stravaClientId;
+        options.ClientSecret = stravaClientSecret;
         options.SaveTokens = true;
         options.Scope.Add("activity:read_all");
     });
@@ -59,6 +59,9 @@ using (var scope = app.Services.CreateScope())
 {
     await IdentitySeeder.SeedRolesAsync(
         scope.ServiceProvider);
+    await IdentitySeeder.SeedAdminAsync(
+        scope.ServiceProvider,
+        builder.Configuration);
 }
 
 // Configure the HTTP request pipeline.

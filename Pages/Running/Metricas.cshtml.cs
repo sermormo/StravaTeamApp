@@ -49,30 +49,57 @@ public class MetricasModel : PageModel
         {
             try
             {
-                // 1. Descargamos las actividades personales exactas del usuario que acaba de entrar
+
                 var apiActivities = await _stravaService.GetAthleteActivitiesAsync(accessToken);
+                var displayName =
+                    $"{user.Nombre} {user.Apellido}".Trim();
 
-                // Extraemos tu nombre real de la base de datos de Identity
-                string nombreVisual = $"{user.Nombre} {user.Apellido}".Trim();
-
-                // Si por alguna razón está vacío, usamos el email como respaldo
-                if (string.IsNullOrEmpty(nombreVisual))
+                if (string.IsNullOrWhiteSpace(displayName))
                 {
-                    nombreVisual = user.Email ?? "Corredor Desconocido";
+                    displayName =
+                        user.Email ?? "Corredor desconocido";
                 }
 
-                // 2. Guardamos las nuevas actividades en la base de datos central
-                foreach (var act in apiActivities)
+                var activityIds = apiActivities
+                    .Select(activity => activity.Id)
+                    .ToList();
+
+                var existingActivities =
+                    await _context.Activities
+                        .Where(activity =>
+                            activityIds.Contains(activity.Id))
+                        .ToDictionaryAsync(activity => activity.Id);
+
+                foreach (var activity in apiActivities)
                 {
-                    if (!await _context.Activities.AnyAsync(a => a.Id == act.Id))
+                    activity.UserId = user.Id;
+                    activity.AthleteName = displayName;
+
+                    if (existingActivities.TryGetValue(
+                        activity.Id,
+                        out var existingActivity))
                     {
-                        act.UserId = user.Id;
-                        act.AthleteName = nombreVisual;
-                        _context.Activities.Add(act);
+                        existingActivity.Name = activity.Name;
+                        existingActivity.Distance = activity.Distance;
+                        existingActivity.TotalElevationGain =
+                            activity.TotalElevationGain;
+                        existingActivity.MovingTime =
+                            activity.MovingTime;
+                        existingActivity.Type = activity.Type;
+                        existingActivity.StartDate =
+                            activity.StartDate;
+                        existingActivity.UserId = user.Id;
+                        existingActivity.AthleteName =
+                            displayName;
+                    }
+                    else
+                    {
+                        _context.Activities.Add(activity);
                     }
                 }
 
                 await _context.SaveChangesAsync();
+
             }
             catch (Exception ex)
             {
