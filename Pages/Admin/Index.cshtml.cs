@@ -75,24 +75,20 @@ public class IndexModel : PageModel
 
             if (!resultado.Succeeded)
             {
-                TempData["Error"] =
+                TempData["ErrorMessage"] =
                     "No fue posible asignar el rol de administrador.";
 
                 return RedirectToPage();
             }
         }
 
-        TempData["Mensaje"] =
+        TempData["SuccessMessage"] =
             "El usuario fue promovido a administrador.";
-        TempData["ErrorMessage"] =
-            "No fue posible asignar el rol de administrador.";
-
 
         return RedirectToPage();
     }
 
-    public async Task<IActionResult>
-        OnPostQuitarAdministradorAsync(string usuarioId)
+  public async Task<IActionResult> OnPostQuitarAdministradorAsync(string usuarioId)
     {
         if (string.IsNullOrWhiteSpace(usuarioId))
         {
@@ -103,7 +99,7 @@ public class IndexModel : PageModel
 
         if (usuarioId == usuarioActualId)
         {
-            TempData["Error"] =
+            TempData["ErrorMessage"] =
                 "No puedes quitarte tu propio acceso administrativo.";
 
             return RedirectToPage();
@@ -126,14 +122,14 @@ public class IndexModel : PageModel
 
             if (!resultado.Succeeded)
             {
-                TempData["Error"] =
+                TempData["ErrorMessage"] =
                     "No fue posible quitar el rol de administrador.";
 
                 return RedirectToPage();
             }
         }
 
-        TempData["Mensaje"] =
+        TempData["SuccessMessage"] =
             "El permiso de administrador fue eliminado.";
 
         return RedirectToPage();
