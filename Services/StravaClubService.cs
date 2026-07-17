@@ -25,12 +25,13 @@ public class StravaAthleteService
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         var apiData = JsonSerializer.Deserialize<List<StravaActivityDto>>(content, options);
-        
+
         return apiData?.Where(a => a.Type == "Run").Select(a => new StravaActivity
         {
-            Id = a.Id, 
+            Id = a.Id,
             Name = a.Name,
             Distance = a.Distance,
+            TotalElevationGain = a.TotalElevationGain,
             MovingTime = a.MovingTime,
             StartDate = a.StartDate
         }).ToList() ?? new List<StravaActivity>();
@@ -45,7 +46,7 @@ public class StravaAthleteService
         var content = await response.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var clubes = JsonSerializer.Deserialize<List<ClubSummaryDto>>(content, options);
-        
+
         return clubes?.Any(c => c.Id == clubId) ?? false;
     }
 
@@ -54,6 +55,8 @@ public class StravaAthleteService
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public double Distance { get; set; }
+        [JsonPropertyName("total_elevation_gain")]
+        public double TotalElevationGain { get; set; }
         [JsonPropertyName("moving_time")]
         public int MovingTime { get; set; }
         [JsonPropertyName("start_date")]

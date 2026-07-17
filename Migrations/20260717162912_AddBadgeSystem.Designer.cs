@@ -11,7 +11,7 @@ using StravaTeamApp.Data;
 namespace StravaTeamApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260717162623_AddBadgeSystem")]
+    [Migration("20260717162912_AddBadgeSystem")]
     partial class AddBadgeSystem
     {
         /// <inheritdoc />
@@ -255,6 +255,121 @@ namespace StravaTeamApp.Migrations
                     b.ToTable("Athletes");
                 });
 
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.Badge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IconPath")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("Badges");
+                });
+
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.BadgeRule", b =>
+                {
+                    b.Property<int>("BadgeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ActivityType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CustomEndDateUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CustomStartDateUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Metric")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Operation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PeriodType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("BadgeId");
+
+                    b.ToTable("BadgeRules", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BadgeRules_TargetValue_Positive", "\"TargetValue\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.UserBadge", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("AchievedValue")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("AwardedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("BadgeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("PeriodEndUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("PeriodStartUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("TriggerActivityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AwardedAtUtc");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("TriggerActivityId");
+
+                    b.HasIndex("UserId", "BadgeId", "PeriodStartUtc", "PeriodEndUtc")
+                        .IsUnique();
+
+                    b.ToTable("UserBadges");
+                });
+
             modelBuilder.Entity("StravaTeamApp.Models.Club", b =>
                 {
                     b.Property<long>("Id")
@@ -401,6 +516,44 @@ namespace StravaTeamApp.Migrations
                     b.Navigation("Club");
                 });
 
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.BadgeRule", b =>
+                {
+                    b.HasOne("StravaTeamApp.Models.Badges.Badge", "Badge")
+                        .WithOne("Rule")
+                        .HasForeignKey("StravaTeamApp.Models.Badges.BadgeRule", "BadgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+                });
+
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.UserBadge", b =>
+                {
+                    b.HasOne("StravaTeamApp.Models.Badges.Badge", "Badge")
+                        .WithMany("Awards")
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StravaTeamApp.Models.StravaActivity", "TriggerActivity")
+                        .WithMany()
+                        .HasForeignKey("TriggerActivityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StravaTeamApp.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("TriggerActivity");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StravaTeamApp.Models.StravaActivity", b =>
                 {
                     b.HasOne("StravaTeamApp.Models.Athlete", null)
@@ -411,6 +564,14 @@ namespace StravaTeamApp.Migrations
             modelBuilder.Entity("StravaTeamApp.Models.Athlete", b =>
                 {
                     b.Navigation("Activities");
+                });
+
+            modelBuilder.Entity("StravaTeamApp.Models.Badges.Badge", b =>
+                {
+                    b.Navigation("Awards");
+
+                    b.Navigation("Rule")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("StravaTeamApp.Models.Club", b =>
