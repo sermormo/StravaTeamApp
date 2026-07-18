@@ -11,7 +11,7 @@ namespace StravaTeamApp.Pages;
 [Authorize]
 public class MetricasModel : PageModel
 {
-    private readonly StravaAthleteService _stravaService; // Usamos el nuevo servicio
+    private readonly StravaService _stravaService;
     private readonly AppDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -19,7 +19,7 @@ public class MetricasModel : PageModel
     public List<StravaActivity> DetailedActivities { get; set; } = new();
 
     public MetricasModel(
-        StravaAthleteService stravaService,
+        StravaService stravaService,
         AppDbContext context,
         UserManager<ApplicationUser> userManager)
     {
@@ -33,7 +33,29 @@ public class MetricasModel : PageModel
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return;
 
-        string? accessToken = await _userManager.GetAuthenticationTokenAsync(user, "Strava", "access_token");
+        string? accessToken;
+
+        try
+        {
+            accessToken =
+                await _stravaService.GetValidAccessTokenAsync(
+                    user,
+                    HttpContext.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            accessToken = null;
+
+            _context.SystemLogs.Add(new SystemLog
+            {
+                Nivel = "Error",
+                Mensaje = "No fue posible renovar el acceso a Strava.",
+                Detalles =
+                    $"Usuario: {user.Id} | Error: {ex.Message}"
+            });
+
+            await _context.SaveChangesAsync();
+        }
 
         if (string.IsNullOrEmpty(accessToken))
         {
@@ -105,9 +127,7 @@ public class MetricasModel : PageModel
             {
                 _context.SystemLogs.Add(new SystemLog
                 {
-                    Nivel = "Error",
-                    Mensaje = $"Fallo API Strava - Usuario: {user.Email}",
-                    Detalles = $"Atleta ID Local: {user.Id} | Token usado: {(accessToken != null && accessToken.Length > 10 ? accessToken.Substring(0, 10) + "..." : "Nulo/Corto")} | Error original: {ex.Message}"
+                    Detalles = $"Usuario: {user.Id} | Error: {ex.Message}"
                 });
                 await _context.SaveChangesAsync();
             }

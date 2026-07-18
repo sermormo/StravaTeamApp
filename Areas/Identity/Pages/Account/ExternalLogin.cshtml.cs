@@ -16,7 +16,7 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly ILogger<ExternalLoginModel> _logger;
-        private readonly StravaAthleteService _athleteService;
+        private readonly StravaService _stravaService;
         private readonly IConfiguration _configuration;
 
         public ExternalLoginModel(
@@ -24,14 +24,14 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
           UserManager<ApplicationUser> userManager,
           IUserStore<ApplicationUser> userStore,
           ILogger<ExternalLoginModel> logger,
-          StravaAthleteService athleteService,
+          StravaService stravaService,
           IConfiguration configuration)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _userStore = userStore;
             _logger = logger;
-            _athleteService = athleteService;
+            _stravaService = stravaService;
             _configuration = configuration;
         }
 
@@ -109,10 +109,7 @@ namespace StravaTeamApp.Areas.Identity.Pages.Account
             {
                 const long teamClubId = 1252154;
 
-                var isMember =
-                    await _athleteService.EsMiembroDelClubAsync(
-                        accessToken,
-                        teamClubId);
+                var isMember = await _stravaService.IsClubMemberAsync(accessToken, teamClubId, HttpContext.RequestAborted);
 
                 if (!isMember)
                 {

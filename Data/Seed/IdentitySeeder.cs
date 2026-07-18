@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
 using StravaTeamApp.Models;
 
 namespace StravaTeamApp.Data.Seed;
@@ -40,10 +39,9 @@ public static class IdentitySeeder
             }
         }
     }
-
     public static async Task SeedAdminAsync(
-    IServiceProvider services,
-    IConfiguration configuration)
+        IServiceProvider services,
+        IConfiguration configuration)
     {
         var email = configuration["InitialAdmin:Email"];
         var password = configuration["InitialAdmin:Password"];
@@ -57,9 +55,12 @@ public static class IdentitySeeder
         }
 
         var userManager =
-            services.GetRequiredService<UserManager<ApplicationUser>>();
+            services.GetRequiredService<
+                UserManager<ApplicationUser>>();
 
-        var user = await userManager.FindByEmailAsync(email);
+        var user =
+            await userManager.FindByEmailAsync(email) ??
+            await userManager.FindByNameAsync(email);
 
         if (user is null)
         {
@@ -75,22 +76,65 @@ public static class IdentitySeeder
             };
 
             var createResult =
-                await userManager.CreateAsync(user, password);
+                await userManager.CreateAsync(
+                    user,
+                    password);
 
             if (!createResult.Succeeded)
             {
                 var errors = string.Join(
                     ", ",
-                    createResult.Errors.Select(error => error.Description));
+                    createResult.Errors.Select(
+                        error => error.Description));
 
                 throw new InvalidOperationException(
                     $"No se pudo crear el administrador: {errors}");
             }
         }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                var emailResult =
+                    await userManager.SetEmailAsync(
+                        user,
+                        email);
+
+                if (!emailResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        emailResult.Errors.Select(
+                            error => error.Description));
+
+                    throw new InvalidOperationException(
+                        $"No se pudo actualizar el correo del administrador: {errors}");
+                }
+            }
+
+            if (!await userManager.HasPasswordAsync(user))
+            {
+                var passwordResult =
+                    await userManager.AddPasswordAsync(
+                        user,
+                        password);
+
+                if (!passwordResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        passwordResult.Errors.Select(
+                            error => error.Description));
+
+                    throw new InvalidOperationException(
+                        $"No se pudo configurar la contraseña del administrador: {errors}");
+                }
+            }
+        }
 
         if (!await userManager.IsInRoleAsync(
-            user,
-            "Administrator"))
+                user,
+                "Administrator"))
         {
             var roleResult =
                 await userManager.AddToRoleAsync(
@@ -101,7 +145,8 @@ public static class IdentitySeeder
             {
                 var errors = string.Join(
                     ", ",
-                    roleResult.Errors.Select(error => error.Description));
+                    roleResult.Errors.Select(
+                        error => error.Description));
 
                 throw new InvalidOperationException(
                     $"No se pudo asignar Administrator: {errors}");

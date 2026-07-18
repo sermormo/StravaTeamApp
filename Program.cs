@@ -25,7 +25,7 @@ var stravaClientSecret =
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient<StravaAthleteService>();
+builder.Services.AddHttpClient<StravaService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString));
