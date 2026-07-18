@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Duración</title>
+  <circle cx="128" cy="128" r="116" fill="#333333" stroke="#FF0000" stroke-width="16"/>
+  <path d="M104 53h48M128 53v22M171 82l15-15" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="128" cy="143" r="65" fill="none" stroke="#FFFFFF" stroke-width="13"/>
+  <path d="M128 103v42l29 20" fill="none" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="143" r="9" fill="#FF0000"/>
+</svg>

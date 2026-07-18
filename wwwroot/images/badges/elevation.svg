@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Elevación</title>
+  <circle cx="128" cy="128" r="116" fill="#333333" stroke="#FF0000" stroke-width="16"/>
+  <path d="M42 180 101 78l31 53 19-31 63 80H42Z" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m83 109 18-31 18 31-18-8-18 8Zm51 18 17-27 18 23-18-7-17 11Z" fill="#FF0000"/>
+  <path d="M192 104V61m0 0-17 18m17-18 17 18" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

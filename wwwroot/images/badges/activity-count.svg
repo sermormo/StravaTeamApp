@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Cantidad de actividades</title>
+  <circle cx="128" cy="128" r="116" fill="#333333" stroke="#FF0000" stroke-width="16"/>
+  <rect x="54" y="61" width="148" height="139" rx="16" fill="none" stroke="#FFFFFF" stroke-width="12"/>
+  <path d="M54 96h148M87 47v29M169 47v29" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <path d="m78 131 11 11 20-24m-31 52 11 11 20-24" fill="none" stroke="#FF0000" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M126 132h47M126 171h47" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+</svg>
