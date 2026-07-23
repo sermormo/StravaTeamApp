@@ -1,0 +1,200 @@
+@page
+@model StravaTeamApp.Pages.Admin.Badges.EditModel
+
+@{
+    ViewData["Title"] = "Editar insignia";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1>Editar insignia</h1>
+
+        <p class="text-muted">
+            Modifica la información y la regla de otorgamiento.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                <input asp-for="Input.Id" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="alert bg-white text-dark border border-danger
+                    border-start border-4 rounded-0">
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Name" class="form-label">
+                        Nombre
+                    </label>
+
+                    <input asp-for="Input.Name" class="form-control" />
+
+                    <span asp-validation-for="Input.Name" class="text-danger">
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Description" class="form-label">
+                        Descripción
+                    </label>
+
+                    <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+
+                    <span asp-validation-for="Input.Description" class="text-danger">
+                    </span>
+                </div>
+
+                <div class="alert bg-light text-dark border rounded-0">
+                    El icono se actualizará automáticamente según
+                    la métrica seleccionada.
+                </div>
+
+                @if (Model.AwardCount > 0)
+                {
+                    <div class="alert bg-white text-dark border border-danger
+                        border-start border-4 rounded-0">
+                        <strong>Atención:</strong>
+
+                        Esta insignia tiene
+                        <strong>
+                            @Model.AwardCount
+                            @(Model.AwardCount == 1
+                                ? "otorgamiento actual"
+                                : "otorgamientos actuales")
+                        </strong>.
+
+                        Si modificas la métrica, operación, periodo,
+                        meta o fechas, estos otorgamientos serán
+                        eliminados para evaluarlos nuevamente con
+                        el nuevo criterio.
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Input.Metric" class="form-label">
+                            Métrica
+                        </label>
+
+                        <select asp-for="Input.Metric" asp-items="Model.MetricOptions" class="form-select">
+                            <option value="">
+                                Selecciona...
+                            </option>
+                        </select>
+
+                        <span asp-validation-for="Input.Metric" class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Input.Operation" class="form-label">
+                            Operación
+                        </label>
+
+                        <select asp-for="Input.Operation" asp-items="Model.OperationOptions" class="form-select">
+                            <option value="">
+                                Selecciona...
+                            </option>
+                        </select>
+
+                        <span asp-validation-for="Input.Operation" class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Input.PeriodType" class="form-label">
+                            Periodo
+                        </label>
+
+                        <select asp-for="Input.PeriodType" asp-items="Model.PeriodOptions" class="form-select"
+                                id="periodType">
+                            <option value="">
+                                Selecciona...
+                            </option>
+                        </select>
+
+                        <span asp-validation-for="Input.PeriodType" class="text-danger">
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.TargetValue" class="form-label">
+                        Meta
+                    </label>
+
+                    <input asp-for="Input.TargetValue" class="form-control" type="number" min="0.01" step="0.01" />
+
+                    <div class="form-text">
+                        Distancia en kilómetros, elevación en metros,
+                        duración en minutos o cantidad de actividades.
+                    </div>
+
+                    <span asp-validation-for="Input.TargetValue" class="text-danger">
+                    </span>
+                </div>
+
+                <div id="customPeriodFields" class="row d-none">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.CustomStartDate" class="form-label">
+                            Fecha inicial
+                        </label>
+
+                        <input asp-for="Input.CustomStartDate" class="form-control" type="date" />
+
+                        <span asp-validation-for="Input.CustomStartDate" class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.CustomEndDate" class="form-label">
+                            Fecha final
+                        </label>
+
+                        <input asp-for="Input.CustomEndDate" class="form-control" type="date" />
+
+                        <span asp-validation-for="Input.CustomEndDate" class="text-danger">
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar cambios
+                    </button>
+
+                    <a asp-page="./Index" class="btn btn-primary">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const periodType =
+            document.getElementById("periodType");
+
+        const customFields =
+            document.getElementById("customPeriodFields");
+
+        function updateCustomPeriodVisibility() {
+            const customPeriodValue = "3";
+
+            customFields.classList.toggle(
+                "d-none",
+                periodType.value !== customPeriodValue);
+        }
+
+        periodType.addEventListener(
+            "change",
+            updateCustomPeriodVisibility);
+
+        updateCustomPeriodVisibility();
+    </script>
+}

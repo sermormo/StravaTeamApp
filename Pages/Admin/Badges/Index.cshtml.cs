@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using StravaTeamApp.Data;
@@ -43,6 +44,39 @@ public class IndexModel : PageModel
                 IsActive = badge.IsActive
             })
             .ToList();
+    }
+
+    public async Task<IActionResult> OnPostToggleStatusAsync(
+        int id)
+    {
+        var badge = await _context.Badges
+            .SingleOrDefaultAsync(item => item.Id == id);
+
+        if (badge is null)
+        {
+            return NotFound();
+        }
+
+        badge.IsActive = !badge.IsActive;
+        badge.UpdatedAtUtc = DateTime.UtcNow;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] =
+                "No fue posible actualizar el estado de la insignia.";
+
+            return RedirectToPage();
+        }
+
+        TempData["SuccessMessage"] = badge.IsActive
+            ? "La insignia fue activada correctamente."
+            : "La insignia fue desactivada correctamente.";
+
+        return RedirectToPage();
     }
 
     private static string GetMetricLabel(

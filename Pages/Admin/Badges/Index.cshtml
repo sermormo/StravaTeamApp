@@ -5,11 +5,47 @@
     ViewData["Title"] = "Insignias";
 }
 
+<style>
+    .badge-row-inactive>td {
+        background-color: rgba(108, 117, 125, 0.14) !important;
+        color: #6c757d;
+        box-shadow: none !important;
+    }
+
+    .badge-row-inactive:hover>td {
+        background-color: rgba(108, 117, 125, 0.20) !important;
+    }
+
+    .badge-row-inactive .badge-icon {
+        filter: grayscale(100%);
+        opacity: 0.45;
+    }
+
+    .badge-row-inactive .badge-name {
+        color: #6c757d;
+    }
+
+    .inactive-description {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.03rem;
+    }
+</style>
+
 <div class="container py-4">
     @if (TempData["SuccessMessage"] is string successMessage)
     {
-        <div class="alert alert-success">
+        <div class="alert text-dark border border-danger" style="background-color: rgba(220, 53, 69, 0.10);">
             @successMessage
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">
+            @errorMessage
         </div>
     }
 
@@ -35,7 +71,7 @@
         <div class="card-body">
             @if (Model.Badges.Count == 0)
             {
-                <div class="alert alert-info mb-0">
+                <div class="alert alert-secondary mb-0">
                     Todavía no hay insignias configuradas.
                 </div>
             }
@@ -51,24 +87,36 @@
                                 <th>Periodo</th>
                                 <th>Meta</th>
                                 <th>Estado</th>
+                                <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             @foreach (var badge in Model.Badges)
                             {
-                                <tr>
+                                <tr class="@(!badge.IsActive
+                                                                        ? "badge-row-inactive"
+                                                                        : string.Empty)">
                                     <td>
                                         <img src="@badge.IconPath" alt="@badge.Name" width="48" height="48"
-                                             class="rounded object-fit-cover" />
+                                             class="rounded object-fit-cover badge-icon" />
                                     </td>
 
                                     <td>
-                                        <strong>@badge.Name</strong>
+                                        <strong class="badge-name">
+                                            @badge.Name
+                                        </strong>
 
                                         <div class="small text-muted">
                                             @badge.Description
                                         </div>
+
+                                        @if (!badge.IsActive)
+                                        {
+                                            <div class="inactive-description mt-1">
+                                                Insignia desactivada
+                                            </div>
+                                        }
                                     </td>
 
                                     <td>
@@ -76,14 +124,19 @@
                                         @badge.Metric.ToLowerInvariant()
                                     </td>
 
-                                    <td>@badge.Period</td>
+                                    <td>
+                                        @badge.Period
+                                    </td>
 
-                                    <td>@badge.Target</td>
+                                    <td>
+                                        @badge.Target
+                                    </td>
 
                                     <td>
                                         @if (badge.IsActive)
                                         {
-                                            <span class="badge bg-success">
+                                            <span class="badge text-white" style="background-color:
+                                                var(--brand-red) !important;">
                                                 Activa
                                             </span>
                                         }
@@ -92,7 +145,27 @@
                                             <span class="badge bg-secondary">
                                                 Inactiva
                                             </span>
+
+                                            <div class="small mt-1">
+                                                No se otorgará
+                                            </div>
                                         }
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a asp-page="./Edit" asp-route-id="@badge.Id" class="btn btn-sm btn-secondary">
+                                                Editar
+                                            </a>
+
+                                            <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@badge.Id">
+                                                <button type="submit" class="btn btn-sm btn-secondary">
+                                                    @(badge.IsActive
+                                                        ? "Desactivar"
+                                                        : "Activar")
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             }
