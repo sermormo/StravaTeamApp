@@ -4,15 +4,127 @@
     ViewData["Title"] = "Métricas de Running";
 }
 
+<style>
+    .badge-award-button {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    .badge-award-icon {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+        transition: transform 0.2s ease;
+    }
+
+    .badge-award-button:hover .badge-award-icon {
+        transform: scale(1.12);
+    }
+
+    .badge-award-inactive {
+        filter: grayscale(1);
+        opacity: 0.55;
+    }
+
+    .badge-modal-icon {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+    }
+
+    .month-badges {
+        min-width: 130px;
+    }
+
+    .badge-award-group {
+        position: relative;
+        display: inline-block;
+        margin: 0 0.25rem;
+    }
+
+    .badge-award-count {
+        position: absolute;
+        top: -7px;
+        right: -9px;
+        min-width: 21px;
+        height: 21px;
+        padding: 0 5px;
+        border: 2px solid white;
+        border-radius: 999px;
+        background-color: #ffc107;
+        color: #212529;
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 17px;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .badge-achievement-card {
+        border-left: 4px solid var(--bs-primary);
+        background-color: #f8f9fa;
+    }
+
+    .selected-month-badges {
+        border-left: 4px solid #ffc107;
+        background-color: #fffdf5;
+    }
+
+    .badge-trigger-row > td {
+        background-color: #fff8db !important;
+    }
+
+    .badge-trigger-row > td:first-child {
+        box-shadow: inset 4px 0 0 #ffc107;
+    }
+
+    .activity-badge-marker {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.35rem;
+    }
+
+    .activity-badge-icon {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+        transition: transform 0.2s ease;
+    }
+
+    .badge-award-button:hover .activity-badge-icon {
+        transform: scale(1.12);
+    }
+
+    .activity-badge-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #856404;
+        white-space: nowrap;
+    }
+</style>
+
 <div class="text-center mt-4 mb-5">
-    <h1 class="display-4 fw-bold" style="color: var(--brand-dark);">Métricas de Running</h1>
-    <p class="lead">Plataforma oficial de seguimiento para el equipo de atletismo y preparativos de la Spirit Race.</p>
+    <h1 class="display-4 fw-bold"
+        style="color: var(--brand-dark);">
+        Métricas de Running
+    </h1>
+
+    <p class="lead">
+        Plataforma oficial de seguimiento para el equipo de
+        atletismo y preparativos de la Spirit Race.
+    </p>
 </div>
 
 <div class="card shadow mb-5">
     <div class="card-header bg-primary text-white">
-        <h3 class="card-title mb-0">Acumulado Mensual por Atleta</h3>
+        <h3 class="card-title mb-0">
+            Acumulado Mensual por Atleta
+        </h3>
     </div>
+
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -20,30 +132,282 @@
                     <tr>
                         <th>Atleta / Período</th>
                         <th>Mes</th>
-                        <th class="text-center">Total Carreras</th>
-                        <th class="text-end">Distancia Total</th>
-                        <th class="text-end">Tiempo Acumulado</th>
+                        <th class="text-center">
+                            Total Carreras
+                        </th>
+                        <th class="text-end">
+                            Distancia Total
+                        </th>
+                        <th class="text-end">
+                            Tiempo Acumulado
+                        </th>
+                        <th class="text-center">
+                            Insignias
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @if (Model.ConsolidatedData.Any())
                     {
-                        @foreach (var athleteGroup in Model.ConsolidatedData.GroupBy(c => c.AthleteName))
+                        foreach (var athleteGroup in
+                            Model.ConsolidatedData.GroupBy(
+                                summary => new
+                                {
+                                    summary.UserId,
+                                    summary.AthleteName
+                                }))
                         {
-                            <tr class="table-light" style="cursor: pointer;" onclick="toggleMonths(this, '@athleteGroup.Key')" title="Clic para expandir/contraer meses">
-                                <td colspan="5" class="fw-bold text-primary fs-5">
-                                    <span class="toggle-icon">▶</span> 🏃‍♂️ @athleteGroup.Key
+                            var athleteAwards =
+                                Model.GetBadgeAwardsForUser(
+                                    athleteGroup.Key.UserId);
+
+                            var distinctBadgeCount =
+                                athleteAwards
+                                    .Select(award => award.BadgeId)
+                                    .Distinct()
+                                    .Count();
+
+                            <tr class="table-light"
+                                data-user-id="@athleteGroup.Key.UserId"
+                                style="cursor: pointer;"
+                                onclick="toggleMonths(this)"
+                                title="Clic para expandir o contraer los meses">
+
+                                <td colspan="6"
+                                    class="fw-bold text-primary fs-5">
+
+                                    <div class="d-flex flex-wrap
+                                                justify-content-between
+                                                align-items-center gap-2">
+
+                                        <span>
+                                            <span class="toggle-icon">
+                                                ▶
+                                            </span>
+
+                                            🏃‍♂️
+                                            @athleteGroup.Key.AthleteName
+                                        </span>
+
+                                        <span class="badge rounded-pill
+                                                     bg-warning text-dark">
+
+                                            @($"{distinctBadgeCount} " +
+                                                (distinctBadgeCount == 1
+                                                    ? "insignia"
+                                                    : "insignias") +
+                                                $" · {athleteAwards.Count} " +
+                                                (athleteAwards.Count == 1
+                                                    ? "logro"
+                                                    : "logros"))
+                                        </span>
+                                    </div>
                                 </td>
                             </tr>
-                            
-                            @foreach (var summary in athleteGroup)
+
+                            foreach (var summary in athleteGroup)
                             {
-                                <tr class="month-row" data-owner="@athleteGroup.Key" style="display: none; cursor: pointer;" onclick="filterActivitiesByMonth('@summary.AthleteName', '@summary.MonthYear')" title="Ver detalles de @summary.MonthYear">
+                                var monthAwards =
+                                    Model.GetBadgeAwardsForMonth(
+                                        summary.UserId,
+                                        summary.MonthYear);
+
+                                var groupedMonthAwards =
+                                    monthAwards
+                                        .GroupBy(award => award.BadgeId)
+                                        .Select(group => new
+                                        {
+                                            Badge = group.First(),
+                                            Awards = group
+                                                .OrderBy(award =>
+                                                    award.TriggerActivityDate)
+                                                .ToList()
+                                        })
+                                        .OrderBy(group =>
+                                            group.Awards
+                                                .First()
+                                                .TriggerActivityDate)
+                                        .ThenBy(group =>
+                                            group.Badge.BadgeName)
+                                        .ToList();
+
+                                <tr class="month-row"
+                                    data-user-id="@summary.UserId"
+                                    data-athlete-name="@summary.AthleteName"
+                                    data-month="@summary.MonthYear"
+                                    style="display: none; cursor: pointer;"
+                                    onclick="filterActivitiesByMonth(this, event)"
+                                    title="Ver detalles de @summary.MonthYear">
+
                                     <td></td>
-                                    <td><span class="badge bg-secondary fs-6">@summary.MonthYear</span></td>
-                                    <td class="text-center">@summary.TotalActivities</td>
-                                    <td class="text-end fw-bold text-success">@summary.TotalDistanceKm km</td>
-                                    <td class="text-end text-muted">@summary.TotalTimeMin min</td>
+
+                                    <td>
+                                        <span class="badge bg-secondary fs-6">
+                                            @summary.MonthYear
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        @summary.TotalActivities
+                                    </td>
+
+                                    <td class="text-end fw-bold text-success">
+                                        @summary.TotalDistanceKm km
+                                    </td>
+
+                                    <td class="text-end text-muted">
+                                        @summary.TotalTimeMin min
+                                    </td>
+
+                                    <td class="text-center month-badges">
+                                        @if (groupedMonthAwards.Any())
+                                        {
+                                            foreach (var badgeGroup in
+                                                groupedMonthAwards)
+                                            {
+                                                var badge =
+                                                    badgeGroup.Badge;
+
+                                                var awardCount =
+                                                    badgeGroup.Awards.Count;
+
+                                                var detailId =
+                                                    $"badgeAwardDetails-{badge.Id}";
+
+                                                <span class="badge-award-group">
+                                                    <button type="button"
+                                                            class="badge-award-button"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#badgeDetailModal"
+                                                            data-badge-name="@badge.BadgeName"
+                                                            data-badge-description="@badge.BadgeDescription"
+                                                            data-icon-path="@badge.IconPath"
+                                                            data-badge-active="@badge.IsActive"
+                                                            data-detail-id="@detailId"
+                                                            title="Ver detalle de @badge.BadgeName">
+
+                                                        <img src="@badge.IconPath"
+                                                             alt="@badge.BadgeName"
+                                                             class="badge-award-icon
+                                                                    @(badge.IsActive
+                                                                        ? string.Empty
+                                                                        : "badge-award-inactive")" />
+                                                    </button>
+
+                                                    @if (awardCount > 1)
+                                                    {
+                                                        <span class="badge-award-count">
+                                                            ×@awardCount
+                                                        </span>
+                                                    }
+                                                </span>
+
+                                                <div id="@detailId"
+                                                     class="d-none">
+
+                                                    @for (var awardIndex = 0;
+                                                        awardIndex <
+                                                            badgeGroup.Awards.Count;
+                                                        awardIndex++)
+                                                    {
+                                                        var award =
+                                                            badgeGroup
+                                                                .Awards[
+                                                                    awardIndex];
+
+                                                        <div class="badge-achievement-card
+                                                                    rounded p-3
+                                                                    @(awardIndex > 0
+                                                                        ? "mt-3"
+                                                                        : string.Empty)">
+
+                                                            <div class="d-flex
+                                                                        justify-content-between
+                                                                        align-items-center
+                                                                        flex-wrap
+                                                                        gap-2 mb-2">
+
+                                                                <strong>
+                                                                    Logro
+                                                                    @(awardIndex + 1)
+                                                                </strong>
+
+                                                                <span class="badge bg-success">
+                                                                    Lograda el
+                                                                    @award.TriggerActivityDate.ToString(
+                                                                        "dd/MM/yyyy")
+                                                                </span>
+                                                            </div>
+
+                                                            <dl class="row mb-0">
+                                                                <dt class="col-sm-5">
+                                                                    Período
+                                                                </dt>
+
+                                                                <dd class="col-sm-7">
+                                                                    @award.PeriodStartUtc.ToString(
+                                                                        "dd/MM/yyyy")
+                                                                    -
+                                                                    @award.PeriodEndDisplay.ToString(
+                                                                        "dd/MM/yyyy")
+                                                                </dd>
+
+                                                                <dt class="col-sm-5">
+                                                                    Valor alcanzado
+                                                                </dt>
+
+                                                                <dd class="col-sm-7
+                                                                           fw-bold
+                                                                           text-success">
+                                                                    @award.AchievedValueDisplay
+                                                                </dd>
+
+                                                                <dt class="col-sm-5">
+                                                                    Actividad decisiva
+                                                                </dt>
+
+                                                                <dd class="col-sm-7">
+                                                                    @award.TriggerActivityName
+                                                                </dd>
+
+                                                                <dt class="col-sm-5">
+                                                                    Distancia
+                                                                </dt>
+
+                                                                <dd class="col-sm-7">
+                                                                    @award.TriggerDistanceKm.ToString(
+                                                                        "0.##") km
+                                                                </dd>
+
+                                                                <dt class="col-sm-5">
+                                                                    Elevación
+                                                                </dt>
+
+                                                                <dd class="col-sm-7">
+                                                                    @award.TriggerElevationMeters.ToString(
+                                                                        "0.##") m
+                                                                </dd>
+
+                                                                <dt class="col-sm-5">
+                                                                    Tiempo
+                                                                </dt>
+
+                                                                <dd class="col-sm-7">
+                                                                    @award.TriggerTimeMinutes.ToString(
+                                                                        "0.##") min
+                                                                </dd>
+                                                            </dl>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -51,8 +415,12 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="text-center text-muted">
-                                Aún no hay datos. Tus carreras se sincronizarán con exactitud automática cada vez que ingreses a la plataforma.
+                            <td colspan="6"
+                                class="text-center text-muted">
+
+                                Aún no hay datos. Tus carreras se
+                                sincronizarán automáticamente cada vez
+                                que ingreses a la plataforma.
                             </td>
                         </tr>
                     }
@@ -63,10 +431,46 @@
 </div>
 
 <div class="card shadow">
-    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0 font-weight-normal text-white-50" id="historialTitle">Detalle de Carreras</h4>
+    <div class="card-header bg-secondary text-white
+                d-flex justify-content-between
+                align-items-center">
+
+        <h4 class="card-title mb-0
+                   font-weight-normal text-white-50"
+            id="activityHistoryTitle">
+
+            Detalle de Carreras
+        </h4>
     </div>
+
     <div class="card-body">
+        <div id="selectedMonthBadgesPanel"
+             class="selected-month-badges rounded p-3 mb-4"
+             style="display: none;">
+
+            <div class="d-flex flex-wrap
+                        justify-content-between
+                        align-items-center gap-3">
+
+                <div>
+                    <h5 id="selectedMonthBadgesTitle"
+                        class="mb-1">
+                        Insignias del mes
+                    </h5>
+
+                    <small class="text-muted">
+                        Pulsa una insignia para ver las fechas
+                        y actividades con las que fue lograda.
+                    </small>
+                </div>
+
+                <div id="selectedMonthBadges"
+                     class="d-flex flex-wrap
+                            align-items-center gap-2">
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-sm table-hover">
                 <thead>
@@ -76,33 +480,150 @@
                         <th>Nombre de la Actividad</th>
                         <th class="text-end">Distancia</th>
                         <th class="text-end">Tiempo</th>
+                        <th class="text-end">
+                            Insignia lograda
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody id="detailedTableBody">
                     <tr id="placeholderRow">
-                        <td colspan="5" class="text-center text-muted py-4">
-                            Selecciona un mes específico en la tabla superior para ver los detalles aquí.
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+
+                            Selecciona un mes en la tabla superior
+                            para ver sus actividades.
                         </td>
                     </tr>
 
                     @if (Model.DetailedActivities.Any())
                     {
-                        @foreach (var monthGroup in Model.DetailedActivities.GroupBy(a => a.StartDate.ToString("yyyy-MM")))
+                        foreach (var monthGroup in
+                            Model.DetailedActivities.GroupBy(
+                                activity =>
+                                    activity.StartDate.ToString(
+                                        "yyyy-MM")))
                         {
-                            <tr class="bg-light month-header" data-month="@monthGroup.Key" style="display: none;">
-                                <td colspan="5" class="fw-bold text-dark border-bottom border-dark">
+                            <tr class="bg-light month-header"
+                                data-month="@monthGroup.Key"
+                                style="display: none;">
+
+                                <td colspan="6"
+                                    class="fw-bold text-dark
+                                           border-bottom border-dark">
+
                                     📅 Mes: @monthGroup.Key
                                 </td>
                             </tr>
-                            
-                            @foreach (var run in monthGroup)
+
+                            foreach (var run in monthGroup)
                             {
-                                <tr class="data-row" data-athlete="@run.AthleteName" data-month="@monthGroup.Key" style="display: none;">
-                                    <td class="ps-4">@run.StartDate.ToString("yyyy-MM-dd")</td>
+                                var runMonthAwards =
+                                    Model.GetBadgeAwardsForMonth(
+                                        run.UserId,
+                                        monthGroup.Key);
+
+                                var triggerAwards =
+                                    runMonthAwards
+                                        .Where(award =>
+                                            award.TriggerActivityDate ==
+                                            run.StartDate)
+                                        .GroupBy(award =>
+                                            award.BadgeId)
+                                        .Select(group =>
+                                        {
+                                            var award =
+                                                group.First();
+
+                                            var firstMonthlyAward =
+                                                runMonthAwards
+                                                    .Where(item =>
+                                                        item.BadgeId ==
+                                                        award.BadgeId)
+                                                    .First();
+
+                                            return new
+                                            {
+                                                Award = award,
+                                                DetailId =
+                                                    $"badgeAwardDetails-{firstMonthlyAward.Id}"
+                                            };
+                                        })
+                                        .OrderBy(item =>
+                                            item.Award.BadgeName)
+                                        .ToList();
+
+                                <tr class="data-row
+                                           @(triggerAwards.Any()
+                                               ? "badge-trigger-row"
+                                               : string.Empty)"
+                                    data-user-id="@run.UserId"
+                                    data-month="@monthGroup.Key"
+                                    style="display: none;">
+
+                                    <td class="ps-4">
+                                        @run.StartDate.ToString(
+                                            "yyyy-MM-dd")
+                                    </td>
+
                                     <td>@run.AthleteName</td>
-                                    <td class="text-muted">@run.Name</td>
-                                    <td class="text-end">@(Math.Round(run.Distance / 1000, 2)) km</td>
-                                    <td class="text-end">@(Math.Round(run.MovingTime / 60.0, 2)) min</td>
+
+                                    <td class="text-muted">
+                                        @run.Name
+                                    </td>
+
+                                    <td class="text-end">
+                                        @(Math.Round(
+                                            run.Distance / 1000.0,
+                                            2)) km
+                                    </td>
+
+                                    <td class="text-end">
+                                        @(Math.Round(
+                                            run.MovingTime / 60.0,
+                                            2)) min
+                                    </td>
+
+                                    <td class="text-end">
+                                        @if (triggerAwards.Any())
+                                        {
+                                            <div class="activity-badge-marker">
+                                                <span class="activity-badge-label">
+                                                    Actividad decisiva
+                                                </span>
+
+                                                @foreach (var triggerItem in
+                                                    triggerAwards)
+                                                {
+                                                    var award =
+                                                        triggerItem.Award;
+
+                                                    <button type="button"
+                                                            class="badge-award-button"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#badgeDetailModal"
+                                                            data-badge-name="@award.BadgeName"
+                                                            data-badge-description="@award.BadgeDescription"
+                                                            data-icon-path="@award.IconPath"
+                                                            data-badge-active="@award.IsActive"
+                                                            data-detail-id="@triggerItem.DetailId"
+                                                            title="Esta actividad logró la insignia @award.BadgeName">
+
+                                                        <img src="@award.IconPath"
+                                                             alt="@award.BadgeName"
+                                                             class="activity-badge-icon
+                                                                    @(award.IsActive
+                                                                        ? string.Empty
+                                                                        : "badge-award-inactive")" />
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -113,103 +634,368 @@
     </div>
 </div>
 
+<div class="modal fade"
+     id="badgeDetailModal"
+     tabindex="-1"
+     aria-labelledby="badgeDetailModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered
+                modal-dialog-scrollable">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"
+                    id="badgeDetailModalLabel">
+
+                    Detalle de la insignia
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img id="badgeModalIcon"
+                         class="badge-modal-icon mb-2"
+                         alt="Icono de la insignia" />
+
+                    <h4 id="badgeModalName"
+                        class="mb-2">
+                    </h4>
+
+                    <span id="badgeModalState"
+                          class="badge">
+                    </span>
+                </div>
+
+                <p id="badgeModalDescription"
+                   class="text-muted text-center">
+                </p>
+
+                <h6 class="text-uppercase
+                           text-muted fw-bold mb-3">
+
+                    Fechas en que la logró
+                </h6>
+
+                <div id="badgeModalAchievements">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // Función 1: Abre y cierra los meses debajo del nombre del atleta
-        function toggleMonths(rowElement, athleteName) {
-            // Buscamos todas las filas de mes que pertenecen a este atleta
-            var rows = document.querySelectorAll('.month-row[data-owner="' + athleteName + '"]');
-            var icon = rowElement.querySelector('.toggle-icon');
-            
-            if (rows.length === 0) return;
+        function toggleMonths(rowElement) {
+            const userId = rowElement.dataset.userId;
 
-            // Revisamos si la primera fila está oculta para determinar si abrimos o cerramos
-            var isHidden = rows[0].style.display === 'none';
+            const rows = Array.from(
+                document.querySelectorAll(".month-row"))
+                .filter(row =>
+                    row.dataset.userId === userId);
 
-            rows.forEach(function(row) {
-                row.style.display = isHidden ? 'table-row' : 'none';
-                
-                // Efecto visual sutil al abrir
-                if (isHidden) {
-                    row.style.backgroundColor = '#f8f9fa';
-                    setTimeout(() => row.style.backgroundColor = '', 300);
-                }
+            if (rows.length === 0) {
+                return;
+            }
+
+            const icon =
+                rowElement.querySelector(".toggle-icon");
+
+            const isHidden =
+                window.getComputedStyle(rows[0]).display ===
+                "none";
+
+            rows.forEach(row => {
+                row.style.display =
+                    isHidden ? "table-row" : "none";
             });
 
-            // Cambiamos el icono de la flecha
-            icon.innerText = isHidden ? '▼' : '▶';
+            icon.textContent = isHidden ? "▼" : "▶";
 
-            // --- NUEVA LÓGICA: Si estamos cerrando el menú, limpiamos la tabla inferior ---
             if (!isHidden) {
-                limpiarDetalles();
+                clearActivityDetails();
             }
         }
 
-        // Función 2: Filtra la tabla inferior por Atleta Y por Mes
-        function filterActivitiesByMonth(athleteName, monthYear) {
-            var tableBody = document.getElementById("detailedTableBody");
-            var rows = tableBody.getElementsByTagName("tr");
-            var title = document.getElementById("historialTitle");
-            var placeholder = document.getElementById("placeholderRow");
+        function filterActivitiesByMonth(
+            rowElement,
+            event) {
 
-            // Ocultamos el mensaje de "Selecciona un mes..."
+            if (event.target.closest(
+                ".badge-award-button")) {
+                return;
+            }
+
+            const userId =
+                rowElement.dataset.userId;
+
+            const athleteName =
+                rowElement.dataset.athleteName;
+
+            const monthYear =
+                rowElement.dataset.month;
+
+            const tableBody =
+                document.getElementById(
+                    "detailedTableBody");
+
+            const rows =
+                tableBody.getElementsByTagName("tr");
+
+            const title =
+                document.getElementById(
+                    "activityHistoryTitle");
+
+            const placeholder =
+                document.getElementById(
+                    "placeholderRow");
+
             if (placeholder) {
                 placeholder.style.display = "none";
             }
 
-            for (var i = 0; i < rows.length; i++) {
-                if (rows[i].id === "placeholderRow") continue;
+            for (let index = 0;
+                 index < rows.length;
+                 index++) {
 
-                // Controlamos las cabeceras de mes
-                if (rows[i].classList.contains('month-header')) {
-                    if (rows[i].getAttribute('data-month') === monthYear) {
-                        rows[i].style.display = 'table-row';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
+                const row = rows[index];
+
+                if (row.id === "placeholderRow") {
                     continue;
                 }
 
-                // Controlamos las filas de datos
-                if (rows[i].classList.contains('data-row')) {
-                    var runAthlete = rows[i].getAttribute('data-athlete');
-                    var runMonth = rows[i].getAttribute('data-month');
-                    
-                    // Solo mostramos si el nombre Y el mes coinciden exactamente
-                    if (runAthlete === athleteName && runMonth === monthYear) {
-                        rows[i].style.display = 'table-row';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
+                if (row.classList.contains(
+                    "month-header")) {
+
+                    row.style.display =
+                        row.dataset.month === monthYear
+                            ? "table-row"
+                            : "none";
+
+                    continue;
+                }
+
+                if (row.classList.contains(
+                    "data-row")) {
+
+                    const matches =
+                        row.dataset.userId === userId &&
+                        row.dataset.month === monthYear;
+
+                    row.style.display =
+                        matches
+                            ? "table-row"
+                            : "none";
                 }
             }
 
-            // Actualizamos el título de la tabla inferior y hacemos scroll
-            title.innerText = "Actividades de " + athleteName + " (" + monthYear + ")";
-            title.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showSelectedMonthBadges(
+                rowElement,
+                athleteName,
+                monthYear);
+
+            title.textContent =
+                `Actividades de ${athleteName} ` +
+                `(${monthYear})`;
+
+            title.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
         }
 
-        // Función 3 (Nueva): Restablece la tabla inferior a su estado inicial vacío
-        function limpiarDetalles() {
-            var tableBody = document.getElementById("detailedTableBody");
-            var rows = tableBody.getElementsByTagName("tr");
-            var title = document.getElementById("historialTitle");
-            var placeholder = document.getElementById("placeholderRow");
+        function showSelectedMonthBadges(
+            rowElement,
+            athleteName,
+            monthYear) {
 
-            // Mostramos el mensaje por defecto
+            const panel =
+                document.getElementById(
+                    "selectedMonthBadgesPanel");
+
+            const title =
+                document.getElementById(
+                    "selectedMonthBadgesTitle");
+
+            const container =
+                document.getElementById(
+                    "selectedMonthBadges");
+
+            container.replaceChildren();
+
+            const badgeGroups =
+                rowElement.querySelectorAll(
+                    ".month-badges .badge-award-group");
+
+            if (badgeGroups.length === 0) {
+                const emptyMessage =
+                    document.createElement("span");
+
+                emptyMessage.className = "text-muted";
+                emptyMessage.textContent =
+                    "No obtuvo insignias durante este mes.";
+
+                container.appendChild(emptyMessage);
+            }
+            else {
+                badgeGroups.forEach(group => {
+                    container.appendChild(
+                        group.cloneNode(true));
+                });
+            }
+
+            title.textContent =
+                `Insignias de ${athleteName} ` +
+                `(${monthYear})`;
+
+            panel.style.display = "block";
+        }
+
+        function clearActivityDetails() {
+            const tableBody =
+                document.getElementById(
+                    "detailedTableBody");
+
+            const rows =
+                tableBody.getElementsByTagName("tr");
+
+            const title =
+                document.getElementById(
+                    "activityHistoryTitle");
+
+            const placeholder =
+                document.getElementById(
+                    "placeholderRow");
+
+            const badgePanel =
+                document.getElementById(
+                    "selectedMonthBadgesPanel");
+
+            const badgeContainer =
+                document.getElementById(
+                    "selectedMonthBadges");
+
             if (placeholder) {
-                placeholder.style.display = "table-row";
+                placeholder.style.display =
+                    "table-row";
             }
 
-            // Ocultamos absolutamente todo lo demás
-            for (var i = 0; i < rows.length; i++) {
-                if (rows[i].id !== "placeholderRow") {
-                    rows[i].style.display = 'none';
+            for (let index = 0;
+                 index < rows.length;
+                 index++) {
+
+                if (rows[index].id !==
+                    "placeholderRow") {
+
+                    rows[index].style.display =
+                        "none";
                 }
             }
 
-            // Reiniciamos el título
-            title.innerText = "Detalle de Carreras";
+            badgeContainer.replaceChildren();
+            badgePanel.style.display = "none";
+
+            title.textContent =
+                "Detalle de Carreras";
         }
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const badgeModal =
+                    document.getElementById(
+                        "badgeDetailModal");
+
+                if (!badgeModal) {
+                    return;
+                }
+
+                badgeModal.addEventListener(
+                    "show.bs.modal",
+                    function (event) {
+
+                        const trigger =
+                            event.relatedTarget;
+
+                        if (!trigger) {
+                            return;
+                        }
+
+                        const isActive =
+                            (trigger.dataset.badgeActive || "")
+                                .toLowerCase() === "true";
+
+                        const icon =
+                            document.getElementById(
+                                "badgeModalIcon");
+
+                        icon.src =
+                            trigger.dataset.iconPath;
+
+                        icon.alt =
+                            trigger.dataset.badgeName;
+
+                        icon.classList.toggle(
+                            "badge-award-inactive",
+                            !isActive);
+
+                        document.getElementById(
+                            "badgeModalName")
+                            .textContent =
+                            trigger.dataset.badgeName;
+
+                        document.getElementById(
+                            "badgeModalDescription")
+                            .textContent =
+                            trigger.dataset
+                                .badgeDescription ||
+                            "Sin descripción.";
+
+                        const state =
+                            document.getElementById(
+                                "badgeModalState");
+
+                        state.textContent =
+                            isActive
+                                ? "Activa"
+                                : "Histórica";
+
+                        state.className =
+                            isActive
+                                ? "badge bg-success"
+                                : "badge bg-secondary";
+
+                        const detailSource =
+                            document.getElementById(
+                                trigger.dataset.detailId);
+
+                        const achievementContainer =
+                            document.getElementById(
+                                "badgeModalAchievements");
+
+                        achievementContainer.innerHTML =
+                            detailSource
+                                ? detailSource.innerHTML
+                                : `<p class="text-muted">
+                                       No se encontraron detalles.
+                                   </p>`;
+                    });
+            });
     </script>
 }

@@ -42,6 +42,22 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .Property(a => a.Id)
             .ValueGeneratedNever();
 
+        modelBuilder.Entity<SystemLog>(systemLog =>
+        {
+            systemLog.HasKey(log => log.Id);
+
+            systemLog.Property(log => log.Category)
+                .HasDefaultValue(
+                    SystemLogCategories.System);
+
+            systemLog.Property(log => log.EventName)
+                .HasDefaultValue("LegacyEvent");
+
+            systemLog.HasIndex(log => log.CreatedAtUtc);
+            systemLog.HasIndex(log => log.Level);
+            systemLog.HasIndex(log => log.Category);
+        });
+
         modelBuilder.Entity<Badge>(badge =>
         {
             badge.HasKey(b => b.Id);

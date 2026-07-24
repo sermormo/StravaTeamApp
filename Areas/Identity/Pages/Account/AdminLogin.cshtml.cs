@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using StravaTeamApp.Models;
+using StravaTeamApp.Services;
 
 namespace StravaTeamApp.Areas.Identity.Pages.Account;
 
@@ -12,13 +13,16 @@ public class AdminLoginModel : PageModel
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ISystemLogService _systemLogService;
 
     public AdminLoginModel(
         SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        ISystemLogService systemLogService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _systemLogService = systemLogService;
     }
 
     [BindProperty]
@@ -60,6 +64,15 @@ public class AdminLoginModel : PageModel
         if (user is null ||
             !await _userManager.IsInRoleAsync(user, "Administrator"))
         {
+            await _systemLogService.WarningAsync(
+                category:
+                    SystemLogCategories.Authentication,
+                eventName: "AdminLoginRejected",
+                message:
+                    "Se rechazó un intento de acceso administrativo.",
+                details:
+                    "Reason=UnknownUserOrMissingAdministratorRole");
+
             ModelState.AddModelError(
                 string.Empty,
                 "Correo o contraseña incorrectos.");
@@ -76,17 +89,45 @@ public class AdminLoginModel : PageModel
 
         if (result.Succeeded)
         {
+            await _systemLogService.InformationAsync(
+                category:
+                    SystemLogCategories.Authentication,
+                eventName: "AdminLoginSucceeded",
+                message:
+                    "Un administrador inició sesión correctamente.",
+                actorUserId: user.Id);
+
             return LocalRedirect(returnUrl);
         }
 
         if (result.IsLockedOut)
         {
+            await _systemLogService.WarningAsync(
+                category:
+                    SystemLogCategories.Authentication,
+                eventName: "AdminAccountLocked",
+                message:
+                    "La cuenta administrativa fue bloqueada temporalmente.",
+                details:
+                    "Reason=RepeatedFailedLoginAttempts",
+                actorUserId: user.Id);
+
             ModelState.AddModelError(
                 string.Empty,
                 "La cuenta está temporalmente bloqueada.");
         }
         else
         {
+            await _systemLogService.WarningAsync(
+                category:
+                    SystemLogCategories.Authentication,
+                eventName: "AdminLoginFailed",
+                message:
+                    "Falló un inicio de sesión administrativo.",
+                details:
+                    "Reason=InvalidCredentials",
+                actorUserId: user.Id);
+
             ModelState.AddModelError(
                 string.Empty,
                 "Correo o contraseña incorrectos.");

@@ -2,6 +2,7 @@ using StravaTeamApp.Services;
 using StravaTeamApp.Data;
 using StravaTeamApp.Models;
 using StravaTeamApp.Data.Seed;
+using StravaTeamApp.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -26,6 +27,11 @@ var stravaClientSecret =
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient<StravaService>();
+builder.Services.AddScoped<BadgeEvaluationService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<
+    ISystemLogService,
+    SystemLogService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString));
@@ -62,6 +68,27 @@ using (var scope = app.Services.CreateScope())
     await IdentitySeeder.SeedAdminAsync(
         scope.ServiceProvider,
         builder.Configuration);
+
+    var systemLogService =
+        scope.ServiceProvider
+            .GetRequiredService<ISystemLogService>();
+
+    var applicationVersion =
+        System.Reflection.Assembly
+            .GetExecutingAssembly()
+            .GetName()
+            .Version?
+            .ToString(3)
+        ?? "desconocida";
+
+    await systemLogService.InformationAsync(
+        category: SystemLogCategories.System,
+        eventName: "ApplicationStarted",
+        message:
+            "La aplicación inició correctamente.",
+        details:
+            $"Environment={app.Environment.EnvironmentName}; " +
+            $"Version={applicationVersion}");
 }
 
 // Configure the HTTP request pipeline.
@@ -71,6 +98,9 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseMiddleware<
+    SystemExceptionLoggingMiddleware>();
 
 app.UseHttpsRedirection();
 

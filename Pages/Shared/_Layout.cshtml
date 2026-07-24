@@ -1,5 +1,17 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Reflection
+@{
+    var informationalVersion =
+        typeof(StravaTeamApp.Pages.IndexModel)
+            .Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
+    var applicationVersion =
+        informationalVersion?.Split('+')[0] ?? "0.0.0";
+}
+
+<!DOCTYPE html>
+<html lang="es">
 
 <head>
     <meta charset="utf-8" />
@@ -43,6 +55,15 @@
                             <a class="nav-link text-dark fw-bold text-primary" asp-area=""
                                asp-page="/Instrucciones">Instrucciones</a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-page="/Privacy">
+                                Privacidad
+                            </a>
+                        </li>
+
                         @if (User.Identity?.IsAuthenticated == true &&
      User.IsInRole("Administrator"))
                         {
@@ -87,7 +108,10 @@
 
     <footer class="border-top footer text-muted">
         <div class="container" style="text-align: center !important; width: 100% !important;">
-            &copy; 2026 - 3M Healthy Living Hub - <a asp-area="" asp-page="/Privacy">Privacidad</a>
+            &copy; 2026 - 3M Healthy Living Hub -
+            <a asp-area="" asp-page="/Privacy">Privacidad</a>
+            <span class="mx-1">·</span>
+            <span title="Versión de la aplicación">@($"v{applicationVersion}")</span>
         </div>
     </footer>
 

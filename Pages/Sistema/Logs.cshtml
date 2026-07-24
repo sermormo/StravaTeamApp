@@ -1,65 +1,270 @@
 @page
 @model StravaTeamApp.Pages.Sistema.LogsModel
+@using StravaTeamApp.Models
 @{
     ViewData["Title"] = "Bitácora del Sistema";
 }
 
-<div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+<div class="d-flex flex-wrap
+            justify-content-between
+            align-items-center gap-3 mt-4 mb-4">
     <div>
-        <h2 class="fw-bold" style="color: var(--brand-dark);">Bitácora del Sistema</h2>
-        <p class="text-muted mb-0">Mantenimiento y revisión de eventos internos (Últimos 100 registros).</p>
+        <h2 class="fw-bold mb-1"
+            style="color: var(--brand-dark);">
+            Bitácora del Sistema
+        </h2>
+
+        <p class="text-muted mb-0">
+            Operaciones, advertencias y errores recientes
+            de la aplicación.
+        </p>
     </div>
 
-    <form method="post" asp-page-handler="BorrarTodos" 
-          onsubmit="return confirm('¿Estás seguro de que deseas eliminar TODOS los registros de la bitácora? Esta acción no se puede deshacer.');">
-        <button type="submit" class="btn btn-outline-danger shadow-sm fw-bold">
-            🗑️ Vaciar Logs
+    <form method="post"
+          asp-page-handler="Clear"
+          onsubmit="return confirm(
+              '¿Deseas eliminar todos los registros? ' +
+              'La operación quedará registrada.');">
+
+        <button type="submit"
+                class="btn btn-outline-danger
+                       shadow-sm fw-bold">
+            🗑️ Vaciar bitácora
         </button>
     </form>
 </div>
 
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-secondary
+                border-start border-4
+                border-primary shadow-sm">
+        @successMessage
+    </div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger shadow-sm">
+        @errorMessage
+    </div>
+}
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get"
+              class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label asp-for="Level"
+                       class="form-label fw-bold">
+                    Nivel
+                </label>
+
+                <select asp-for="Level"
+                        class="form-select">
+                    <option value="">Todos</option>
+
+                    @foreach (var level in
+                        Model.LevelOptions)
+                    {
+                        <option value="@level">
+                            @Model.GetLevelLabel(level)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Category"
+                       class="form-label fw-bold">
+                    Categoría
+                </label>
+
+                <select asp-for="Category"
+                        class="form-select">
+                    <option value="">Todas</option>
+
+                    @foreach (var category in
+                        Model.CategoryOptions)
+                    {
+                        <option value="@category">
+                            @Model.GetCategoryLabel(category)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Search"
+                       class="form-label fw-bold">
+                    Buscar
+                </label>
+
+                <input asp-for="Search"
+                       class="form-control"
+                       placeholder="Evento, mensaje o usuario" />
+            </div>
+
+            <div class="col-md-2 d-grid gap-2">
+                <button type="submit"
+                        class="btn btn-primary">
+                    Filtrar
+                </button>
+
+                <a asp-page="./Logs"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white">
+        <div class="d-flex flex-wrap
+                    justify-content-between gap-2">
+            <span class="fw-bold">
+                Últimos registros
+            </span>
+
+            <span>
+                Se muestran hasta 200 eventos
+            </span>
+        </div>
+    </div>
+
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0">
-                <thead class="table-dark">
+            <table class="table table-striped
+                          table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th style="width: 15%;">Fecha</th>
-                        <th style="width: 10%;">Nivel</th>
-                        <th style="width: 25%;">Mensaje</th>
-                        <th style="width: 50%;">Detalles</th>
+                        <th>Fecha UTC</th>
+                        <th>Nivel</th>
+                        <th>Categoría / evento</th>
+                        <th>Mensaje</th>
+                        <th>Contexto</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @if (Model.Registros.Any())
+                    @if (Model.Logs.Any())
                     {
-                        @foreach (var log in Model.Registros)
+                        foreach (var log in Model.Logs)
                         {
                             <tr>
-                                <td class="text-muted small">@log.Fecha.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                <td class="text-muted
+                                           small text-nowrap">
+                                    @log.CreatedAtUtc.ToString(
+                                        "yyyy-MM-dd HH:mm:ss")
+                                </td>
+
                                 <td>
-                                    @if (log.Nivel == "Error")
+                                    @if (log.Level ==
+                                        SystemLogLevels.Error ||
+                                        log.Level ==
+                                        SystemLogLevels.Critical)
                                     {
-                                        <span class="badge bg-danger">@log.Nivel</span>
+                                        <span class="badge bg-danger">
+                                            @Model.GetLevelLabel(
+                                                log.Level)
+                                        </span>
                                     }
-                                    else if (log.Nivel == "Warning")
+                                    else if (log.Level ==
+                                        SystemLogLevels.Warning)
                                     {
-                                        <span class="badge bg-warning text-dark">@log.Nivel</span>
+                                        <span class="badge
+                                                     bg-warning
+                                                     text-dark">
+                                            @Model.GetLevelLabel(
+                                                log.Level)
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-info">@log.Nivel</span>
+                                        <span class="badge
+                                                     bg-secondary">
+                                            @Model.GetLevelLabel(
+                                                log.Level)
+                                        </span>
                                     }
                                 </td>
-                                <td class="fw-bold">@log.Mensaje</td>
-                                <td class="small" style="word-break: break-word;">@log.Detalles</td>
+
+                                <td>
+                                    <div class="fw-bold">
+                                        @Model.GetCategoryLabel(
+                                            log.Category)
+                                    </div>
+
+                                    <code class="small text-dark">
+                                        @log.EventName
+                                    </code>
+                                </td>
+
+                                <td style="min-width: 240px;">
+                                    <div class="fw-bold">
+                                        @log.Message
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        log.Details))
+                                    {
+                                        <div class="small
+                                                    text-muted mt-1"
+                                             style="word-break:
+                                                    break-word;">
+                                            @log.Details
+                                        </div>
+                                    }
+                                </td>
+
+                                <td class="small"
+                                    style="min-width: 210px;">
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        log.ActorUserId))
+                                    {
+                                        <div>
+                                            <strong>Usuario:</strong>
+                                            <span style="word-break:
+                                                         break-all;">
+                                                @log.ActorUserId
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        log.RequestPath))
+                                    {
+                                        <div>
+                                            <strong>Ruta:</strong>
+                                            @log.RequestPath
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        log.RequestId))
+                                    {
+                                        <div class="text-muted"
+                                             style="word-break:
+                                                    break-all;">
+                                            <strong>Solicitud:</strong>
+                                            @log.RequestId
+                                        </div>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">No hay registros en la bitácora.</td>
+                            <td colspan="5"
+                                class="text-center
+                                       text-muted py-5">
+                                No se encontraron registros
+                                con los filtros seleccionados.
+                            </td>
                         </tr>
                     }
                 </tbody>

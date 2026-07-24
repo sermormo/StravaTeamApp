@@ -8,10 +8,6 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
 html {
   position: relative;
   min-height: 100%;
@@ -36,8 +32,14 @@ body {
 
 :root {
     --brand-red: #FF0000;
+    --brand-red-dark: #CC0000;
     --brand-dark: #333333;
     --brand-gray: #F5F5F5;
+    --brand-white: #FFFFFF;
+    --bs-primary: #FF0000;
+    --bs-primary-rgb: 255, 0, 0;
+    --bs-link-color: #FF0000;
+    --bs-link-hover-color: #CC0000;
 }
 
 body {
@@ -45,6 +47,71 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: var(--brand-dark);
     background-color: var(--brand-gray);
+}
+
+body a:not(.btn):not(.nav-link):not(.dropdown-item) {
+    color: var(--brand-red);
+}
+
+body a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+    color: var(--brand-red-dark);
+}
+
+/* El foco y los elementos Bootstrap respetan la paleta corporativa. */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--brand-white),
+                0 0 0 0.25rem rgba(255, 0, 0, 0.25);
+}
+
+.text-primary {
+    color: var(--brand-red) !important;
+}
+
+.bg-primary {
+    background-color: var(--brand-red) !important;
+}
+
+.border-primary {
+    border-color: var(--brand-red) !important;
+}
+
+.alert-info {
+    color: var(--brand-dark);
+    background-color: var(--brand-white);
+    border-color: #DDDDDD;
+    border-left: 4px solid var(--brand-red);
+}
+
+.bg-info {
+    color: var(--brand-white) !important;
+    background-color: var(--brand-dark) !important;
+}
+
+.text-info {
+    color: var(--brand-dark) !important;
+}
+
+.border-info {
+    border-color: var(--brand-red) !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--brand-red);
+    border-color: var(--brand-red);
+}
+
+.dropdown-item.active,
+.dropdown-item:active,
+.list-group-item.active,
+.page-item.active .page-link {
+    color: var(--brand-white);
+    background-color: var(--brand-red);
+    border-color: var(--brand-red);
 }
 
 /* 1. Botones Cuadrados y Rojos */
@@ -60,13 +127,26 @@ body {
 }
 
 .btn-primary:hover, .btn-success:hover {
-    background-color: #CC0000 !important; /* Rojo más oscuro al pasar el mouse */
-    border-color: #CC0000 !important;
+    background-color: var(--brand-red-dark) !important;
+    border-color: var(--brand-red-dark) !important;
+}
+
+.btn-outline-primary {
+    color: var(--brand-red) !important;
+    border-color: var(--brand-red) !important;
+    border-radius: 0 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    color: var(--brand-white) !important;
+    background-color: var(--brand-red) !important;
+    border-color: var(--brand-red) !important;
 }
 
 /* 2. Barra de Navegación Blanca con línea roja */
 .navbar {
-    background-color: #FFFFFF !important;
+    background-color: var(--brand-white) !important;
     border-bottom: 5px solid var(--brand-red);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -89,7 +169,7 @@ body {
 }
 
 .card-header {
-    background-color: #FFFFFF !important;
+    background-color: var(--brand-white) !important;
     color: var(--brand-dark) !important;
     border-bottom: 1px solid #EEEEEE;
     font-weight: bold;
