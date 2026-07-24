@@ -33,8 +33,10 @@ builder.Services.AddScoped<
     ISystemLogService,
     SystemLogService>();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+builder.Services.AddDbContext<
+    AppDbContext,
+    SqlServerAppDbContext>(options =>
+        options.UseSqlServer(connectionString));
 
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>

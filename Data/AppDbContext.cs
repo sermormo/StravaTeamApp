@@ -7,8 +7,7 @@ namespace StravaTeamApp.Data;
 
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
-    public AppDbContext(
-        DbContextOptions<AppDbContext> options)
+    public AppDbContext(DbContextOptions options)
         : base(options)
     {
     }
@@ -26,6 +25,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        var targetValueCheckConstraint =
+        Database.IsSqlServer() ? "[TargetValue] > 0" : "\"TargetValue\" > 0";
 
         modelBuilder.Entity<Club>().HasKey(t => t.Id);
         modelBuilder.Entity<Club>()
@@ -92,7 +93,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 "BadgeRules",
                 table => table.HasCheckConstraint(
                     "CK_BadgeRules_TargetValue_Positive",
-                    "\"TargetValue\" > 0"));
+                    targetValueCheckConstraint));
         });
 
         modelBuilder.Entity<UserBadge>(userBadge =>
@@ -110,12 +111,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Restrict);
 
             userBadge.HasIndex(ub => new
-                {
-                    ub.UserId,
-                    ub.BadgeId,
-                    ub.PeriodStartUtc,
-                    ub.PeriodEndUtc
-                })
+            {
+                ub.UserId,
+                ub.BadgeId,
+                ub.PeriodStartUtc,
+                ub.PeriodEndUtc
+            })
                 .IsUnique();
 
             userBadge.HasIndex(ub => ub.AwardedAtUtc);
