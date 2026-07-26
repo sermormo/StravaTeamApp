@@ -36,7 +36,10 @@ builder.Services.AddScoped<
 builder.Services.AddDbContext<
     AppDbContext,
     SqlServerAppDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(
+            connectionString,
+            sqlServerOptions =>
+                sqlServerOptions.EnableRetryOnFailure()));
 
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
